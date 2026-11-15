@@ -6,7 +6,7 @@ from fastapi import APIRouter, Cookie, Depends, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
-from ..config import settings
+from ..config import secure_cookie, settings
 from ..database import get_db
 from ..models import Order, Subscription, User
 from ..naming import next_panel_email, panel_comment, retitle, subscription_title
@@ -21,7 +21,12 @@ router = APIRouter()
 
 @router.get("/unavailable", response_class=HTMLResponse)
 def payment_unavailable(request: Request):
-    return render(request, "payment_unavailable.html", {})
+    return render(request, "notice.html", {
+        "title": "Ссылка оплаты не задана",
+        "text": "Для этого тарифа нет ссылки Робокассы.",
+        "action_href": "/account",
+        "action_label": "В кабинет",
+    })
 
 
 @router.get("/mock/{inv_id}", response_class=HTMLResponse)
@@ -182,18 +187,36 @@ def payment_success(
             )
 
     waiting = order is not None and order.status == "pending"
-    response = render(
-        request,
-        "payment_success.html",
-        {"sub_url": sub.sub_url if sub else "", "waiting": waiting},
-    )
+    if sub is not None:
+        page = {
+            "title": "Ключ доступа",
+            "text": "Оплата прошла. Скопируйте ключ и вставьте его в приложение.",
+            "sub_url": sub.sub_url,
+            "action_href": "/account",
+            "action_label": "Открыть кабинет",
+        }
+    elif waiting:
+        page = {
+            "title": "Оплата получена",
+            "text": "Ключ появится на этой странице, как только магазин подтвердит оплату.",
+            "waiting": True,
+        }
+    else:
+        page = {
+            "title": "Ключ в кабинете",
+            "text": "Откройте кабинет с почтой, которую указывали при оплате.",
+            "action_href": "/account",
+            "action_label": "Открыть кабинет",
+        }
+    response = render(request, "notice.html", page)
     if order is not None and order.user is not None:
         response.set_cookie(
             "user_token",
             order.user.token,
             httponly=True,
-            secure=settings.cookie_secure,
+            secure=secure_cookie(request.url.scheme),
             samesite="lax",
+            path="/",
             max_age=86400 * 30,
         )
     return response
@@ -201,7 +224,12 @@ def payment_success(
 
 @router.get("/fail", response_class=HTMLResponse)
 def payment_fail(request: Request):
-    return render(request, "payment_fail.html", {})
+    return render(request, "notice.html", {
+        "title": "Оплата не прошла",
+        "text": "Деньги не списаны, ключ не выдан.",
+        "action_href": "/#pricing",
+        "action_label": "К тарифам",
+    })
 
 
 def _apply_result(sub: Subscription, result: dict) -> None:

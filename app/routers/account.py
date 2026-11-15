@@ -3,10 +3,12 @@ from typing import Optional
 
 from fastapi import APIRouter, Cookie, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from ..templating import render
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from ..config import settings
+from ..templating import render
+
+from ..config import secure_cookie
 from ..database import get_db
 from ..models import Order, Plan, Subscription, User
 from ..payment import create_payment_url
@@ -84,12 +86,7 @@ def account(
 ):
     user = _user(db, user_token)
     if not user:
-        return render(request, "account_enter.html", {})
-
-    try:
-        sync_user(db, user.id)
-    except Exception:
-        db.rollback()
+        return render(request, "account.html", {"user": None, "email": "", "error": ""})
 
     subs = (
         db.query(Subscription)
@@ -105,7 +102,13 @@ def account(
     )
     plans = db.query(Plan).filter(Plan.is_active.is_(True)).order_by(Plan.price).all()
     for order in orders:
-        order.pay_url = create_payment_url(order) if order.status == "pending" else ""
+        if order.status != "pending":
+            order.pay_url = ""
+            continue
+        try:
+            order.pay_url = create_payment_url(order)
+        except Exception:
+            order.pay_url = "/#pricing"
     now = datetime.utcnow()
     return render(
         request,
@@ -125,21 +128,22 @@ def account_enter(
     email: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    user = db.query(User).filter(User.email == email.strip().lower()).first()
+    user = db.query(User).filter(func.lower(User.email) == email.strip().lower()).first()
     if user is None:
         return render(
             request,
-            "account_enter.html",
-            {"email": email.strip(), "error": "С этой почтой доступа ещё нет."},
+            "account.html",
+            {"user": None, "email": email.strip(), "error": "С этой почтой доступа ещё нет."},
         )
     response = RedirectResponse("/account", status_code=303)
     response.set_cookie(
         "user_token",
         user.token,
         httponly=True,
-        secure=settings.cookie_secure,
+        secure=secure_cookie(request.url.scheme),
         samesite="lax",
         max_age=86400 * 30,
+        path="/",
     )
     return response
 
@@ -151,8 +155,11 @@ def account_sync(
 ):
     user = _user(db, user_token)
     if not user:
-        return RedirectResponse("/", status_code=303)
-    sync_user(db, user.id, force=True)
+        return RedirectResponse("/account", status_code=303)
+    try:
+        sync_user(db, user.id, force=True)
+    except Exception:
+        db.rollback()
     return RedirectResponse("/account", status_code=303)
 
 

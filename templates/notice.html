@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — LotAi{% endblock %}
+
+{% block content %}
+<div class="payment-wrap">
+  <div class="payment-card">
+    <h1>{{ title }}</h1>
+    {% if text %}<p class="payment-sub">{{ text }}</p>{% endif %}
+    {% if sub_url %}
+    <div class="copy-field">
+      <input type="text" readonly value="{{ sub_url }}" id="access-key" onclick="this.select()">
+      <button type="button" class="btn btn-primary" onclick="copySub('access-key')">Копировать</button>
+    </div>
+    {% endif %}
+    {% if action_href %}
+    <a href="{{ action_href }}" class="btn btn-primary btn-block" style="margin-top:14px">{{ action_label }}</a>
+    {% endif %}
+    {% if waiting %}<meta http-equiv="refresh" content="4">{% endif %}
+  </div>
+</div>
+{% endblock %}

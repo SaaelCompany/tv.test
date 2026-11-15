@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
-from ..config import settings
+from ..config import secure_cookie, settings
 from ..database import get_db
 from ..models import Order, Plan, Subscription, User
 from ..payment import create_payment_url
@@ -76,7 +76,8 @@ def buy(
     response.set_cookie(
         "user_token", user.token,
         httponly=True,
-        secure=settings.cookie_secure,
+        secure=secure_cookie(request.url.scheme),
+        path="/",
         samesite="lax",
         max_age=86400 * 30,
     )

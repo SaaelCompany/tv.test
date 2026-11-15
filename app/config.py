@@ -63,3 +63,8 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def secure_cookie(scheme: str) -> bool:
+    """Secure-cookie по HTTP браузер выбрасывает, и кабинет снова просит почту."""
+    return bool(settings.cookie_secure) and scheme == "https"

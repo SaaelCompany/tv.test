@@ -142,39 +142,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
-
-/* ───── Появление блоков при скролле ───── */
-if ('IntersectionObserver' in window) {
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((en) => {
-        if (en.isIntersecting) {
-          en.target.classList.add('reveal');
-          io.unobserve(en.target);
-        }
-      });
-    },
-    { threshold: 0.1 }
-  );
-
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.section, .plan, .feature').forEach((el) => io.observe(el));
-  });
-} else {
-  // Браузеры без IntersectionObserver — просто показываем всё
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.section, .plan, .feature').forEach((el) => {
-      el.classList.add('reveal');
-    });
-  });
-}
-
-/* ───── Утилита: копирование любой строки (на будущее) ───── */
-async function copyText(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toast('Скопировано');
-  } catch {
-    toast('Не удалось скопировать');
-  }
-}

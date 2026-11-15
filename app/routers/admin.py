@@ -4,7 +4,7 @@ from fastapi import APIRouter, Cookie, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
-from ..config import settings
+from ..config import secure_cookie, settings
 from ..database import get_db
 from ..models import Plan
 from ..site_content import get_site
@@ -42,11 +42,14 @@ def admin_page(
 
 
 @router.post("/login")
-def admin_login(password: str = Form(...)):
+def admin_login(request: Request, password: str = Form(...)):
     if not settings.admin_password or password != settings.admin_password:
         raise HTTPException(status_code=403, detail="bad password")
     resp = RedirectResponse("/admin", status_code=303)
-    resp.set_cookie(ADMIN_COOKIE, password, httponly=True, secure=settings.cookie_secure, samesite="lax")
+    resp.set_cookie(
+        ADMIN_COOKIE, password, httponly=True,
+        secure=secure_cookie(request.url.scheme), samesite="lax", path="/",
+    )
     return resp
 
 
