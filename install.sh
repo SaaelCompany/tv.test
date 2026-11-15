@@ -14,9 +14,9 @@
 #
 # Прочее:
 #   XUI_TOKEN          — то же, что XUI_API_TOKEN
-#   XUI_URL            — панель, по умолчанию http://127.0.0.1:2053
+#   XUI_URL            — панель, по умолчанию https://179.254.168.161.nip.io:2753/tele2
 #   XUI_INBOUND_ID     — по умолчанию 1
-#   XUI_SUB_BASE_URL   — база ссылок ключа
+#   XUI_SUB_BASE_URL   — база ссылок ключа, по умолчанию https://179.254.168.161.nip.io:2096/tele2
 #   XUI_SYNC_INTERVAL  — секунды, по умолчанию 120
 #   ADMIN_PASSWORD     — иначе генерируется
 #   PORT               — порт без домена, по умолчанию 8000
@@ -51,7 +51,8 @@ DB_USER="${DB_USER:-vpn}"
 SERVICE="${SERVICE:-vpn-shop}"
 PORT="${PORT:-8000}"
 XUI_API_TOKEN="${XUI_API_TOKEN:-${XUI_TOKEN:-}}"
-XUI_URL="${XUI_URL:-http://127.0.0.1:2053}"
+XUI_URL="${XUI_URL:-https://179.254.168.161.nip.io:2753/tele2}"
+XUI_SUB_BASE_URL="${XUI_SUB_BASE_URL:-https://179.254.168.161.nip.io:2096/tele2}"
 XUI_INBOUND_ID="${XUI_INBOUND_ID:-1}"
 XUI_SYNC_INTERVAL="${XUI_SYNC_INTERVAL:-120}"
 DOMAIN="${DOMAIN:-}"
@@ -81,7 +82,6 @@ if [ -z "$DOMAIN" ]; then
   COOKIE_SECURE="false"
   BIND_ADDR="0.0.0.0:${PORT}"
   TRUSTED_HOSTS="${SERVER_IP},localhost,127.0.0.1"
-  XUI_SUB_BASE_URL="${XUI_SUB_BASE_URL:-http://${SERVER_IP}:2096}"
   USE_CADDY=0
 else
   SUB_DOMAIN="${SUB_DOMAIN:-sub.${DOMAIN}}"
@@ -89,7 +89,6 @@ else
   COOKIE_SECURE="true"
   BIND_ADDR="127.0.0.1:${PORT}"
   TRUSTED_HOSTS="${DOMAIN},${SUB_DOMAIN},localhost,127.0.0.1"
-  XUI_SUB_BASE_URL="${XUI_SUB_BASE_URL:-https://${SUB_DOMAIN}}"
   USE_CADDY=1
 fi
 if [ "${SKIP_CADDY:-0}" = "1" ]; then
@@ -100,6 +99,7 @@ log "Код:       $SOURCE_DIR"
 log "Куда:      $APP_DIR"
 log "Сайт:      $BASE_URL"
 log "Панель:    $XUI_URL (inbound $XUI_INBOUND_ID)"
+log "Ключи:     $XUI_SUB_BASE_URL"
 [ "$DRY_RUN" = "1" ] && warn "DRY_RUN=1 — изменений не будет"
 echo
 
@@ -195,7 +195,7 @@ fi
 # ──────────── .env ────────────
 log "→ .env"
 if [ -f "$APP_DIR/.env" ] && [ "$RECONFIGURE" != "1" ]; then
-  warn "$APP_DIR/.env уже есть — оставляю. Пересоздать: RECONFIGURE=1"
+  warn "$APP_DIR/.env уже есть — пароли не трогаю, адреса панели обновляю. Пересоздать целиком: RECONFIGURE=1"
   if [ -z "${ADMIN_PASSWORD:-}" ]; then
     ADMIN_PASSWORD="$(grep '^ADMIN_PASSWORD=' "$APP_DIR/.env" | head -1 | cut -d= -f2- || true)"
   fi
@@ -243,6 +243,14 @@ EOF
   else
     echo "  [dry] записал бы $APP_DIR/.env"
   fi
+fi
+
+if [ -f "$APP_DIR/.env" ] && [ "$DRY_RUN" != "1" ]; then
+  sed -i "s|^XUI_URL=.*|XUI_URL=${XUI_URL}|" "$APP_DIR/.env"
+  sed -i "s|^XUI_SUB_BASE_URL=.*|XUI_SUB_BASE_URL=${XUI_SUB_BASE_URL}|" "$APP_DIR/.env"
+  grep -q '^XUI_URL=' "$APP_DIR/.env" || echo "XUI_URL=${XUI_URL}" >> "$APP_DIR/.env"
+  grep -q '^XUI_SUB_BASE_URL=' "$APP_DIR/.env" || echo "XUI_SUB_BASE_URL=${XUI_SUB_BASE_URL}" >> "$APP_DIR/.env"
+  ok "панель в .env: ${XUI_URL}"
 fi
 
 # ──────────── systemd ────────────
