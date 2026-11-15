@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>LotAi — админка</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0b1220; color: #e2e8f0; padding: 32px; max-width: 1100px; margin: 0 auto; }
+    h1 { margin-bottom: 8px; }
+    h2 { margin: 28px 0 12px; font-size: 1.15rem; }
+    p.hint { color: #94a3b8; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; background: #121b2e; border-radius: 8px; overflow: hidden; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #243049; }
+    th { background: #0b1220; color: #94a3b8; font-size: 0.85rem; }
+    input[type=text], input[type=number], textarea { width: 100%; padding: 8px 10px; background: #0b1220;
+      border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font: inherit; }
+    textarea { min-height: 140px; resize: vertical; }
+    label { display: block; margin-bottom: 12px; }
+    label span { display: block; color: #94a3b8; font-size: 0.82rem; margin-bottom: 4px; }
+    button { padding: 8px 14px; border-radius: 6px; border: 0; cursor: pointer; font-weight: 600; }
+    .save { background: #22c55e; color: #04120a; }
+    .del { background: #ef4444; color: #fff; }
+    .create { background: #38bdf8; color: #041018; margin-bottom: 16px; }
+    form.row { margin: 0; }
+    .card { background: #121b2e; border: 1px solid #243049; border-radius: 12px; padding: 16px; }
+  </style>
+</head>
+<body>
+  <h1>LotAi</h1>
+  <p class="hint">Реквизиты попадают в подвал витрины. Тексты открываются по ссылкам политики и оферты.</p>
+
+  <form class="card" method="post" action="/admin/site">
+    <label>
+      <span>Название в подвале</span>
+      <input type="text" name="legal_name" value="{{ site.legal_name }}" maxlength="120">
+    </label>
+    <label>
+      <span>ФИО получателя платежа</span>
+      <input type="text" name="recipient_name" value="{{ site.recipient_name or '' }}" maxlength="200">
+    </label>
+    <label>
+      <span>ИНН</span>
+      <input type="text" name="inn" value="{{ site.inn or '' }}" inputmode="numeric" maxlength="12">
+    </label>
+    <label>
+      <span>Политика конфиденциальности</span>
+      <textarea name="privacy_policy">{{ site.privacy_policy or '' }}</textarea>
+    </label>
+    <label>
+      <span>Публичная оферта</span>
+      <textarea name="public_offer">{{ site.public_offer or '' }}</textarea>
+    </label>
+    <button class="save" type="submit">Сохранить реквизиты</button>
+  </form>
+
+  <h2>Тарифы</h2>
+  <p class="hint">Для каждого тарифа вставьте свою готовую ссылку Робокассы. В кабинете Робокассы: Result URL — http://179.254.168.161/payment/result, Success URL — http://179.254.168.161/payment/success. После оплаты человек попадает на Success URL и видит ключ.</p>
+
+  <form class="row" method="post" action="/admin/plan/create">
+    <table>
+      <tr>
+        <td><input type="text" name="name" placeholder="Название" required></td>
+        <td><input type="number" name="price" placeholder="Цена ₽" required></td>
+        <td><input type="number" name="days" placeholder="Дней" required></td>
+        <td><input type="number" name="traffic_gb" placeholder="ГБ (0=∞)" required></td>
+        <td><input type="text" name="payment_url" placeholder="Ссылка Робокассы"></td>
+        <td><button class="create" type="submit">Добавить</button></td>
+      </tr>
+    </table>
+  </form>
+
+  <br>
+
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Название</th><th>Цена ₽</th><th>Дней</th><th>ГБ</th><th>Ссылка Робокассы</th><th>Активен</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for p in plans %}
+      <tr>
+        <td>{{ p.id }}</td>
+        <td><input form="plan-{{ p.id }}" type="text" name="name" value="{{ p.name }}"></td>
+        <td><input form="plan-{{ p.id }}" type="number" name="price" value="{{ p.price }}"></td>
+        <td><input form="plan-{{ p.id }}" type="number" name="days" value="{{ p.days }}"></td>
+        <td><input form="plan-{{ p.id }}" type="number" name="traffic_gb" value="{{ p.traffic_gb }}"></td>
+        <td><input form="plan-{{ p.id }}" type="text" name="payment_url" value="{{ p.payment_url or '' }}" placeholder="https://auth.robokassa.ru/..."></td>
+        <td><input form="plan-{{ p.id }}" type="checkbox" name="is_active" value="true" {% if p.is_active %}checked{% endif %}></td>
+        <td style="white-space:nowrap">
+          <form id="plan-{{ p.id }}" method="post" action="/admin/plan/{{ p.id }}"></form>
+          <button class="save" type="submit" form="plan-{{ p.id }}">Сохранить</button>
+          <form method="post" action="/admin/plan/{{ p.id }}/delete" onsubmit="return confirm('Удалить?')" style="display:inline">
+            <button class="del" type="submit">×</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

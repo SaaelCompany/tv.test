@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Оплата — LotAi{% endblock %}
+
+{% block content %}
+<div class="payment-wrap">
+  <div class="payment-card">
+    <div class="payment-kicker">LotAi</div>
+    <h1>Подтвердите оплату</h1>
+    <p class="payment-sub">Тестовый режим. Деньги не списываются, ключ выдаётся сразу.</p>
+
+    <div class="payment-details">
+      <div class="payment-row">
+        <span>Заказ</span>
+        <span><b>№{{ order.inv_id }}</b></span>
+      </div>
+      <div class="payment-row">
+        <span>Тариф</span>
+        <span>{{ order.plan.name }}</span>
+      </div>
+      <div class="payment-row">
+        <span>Действие</span>
+        <span>{% if order.kind == "renew" %}Продление{% if order.subscription and order.subscription.name %} «{{ order.subscription.name }}»{% endif %}{% else %}Новое пространство{% endif %}</span>
+      </div>
+      <div class="payment-row">
+        <span>Срок</span>
+        <span>{{ order.plan.days }} дней</span>
+      </div>
+      <div class="payment-row">
+        <span>Квота</span>
+        <span>{% if order.plan.traffic_gb == 0 %}Без лимита{% else %}{{ order.plan.traffic_gb }} ГБ{% endif %}</span>
+      </div>
+      <div class="payment-row payment-row-total">
+        <span>Итого</span>
+        <span>{{ order.amount }} ₽</span>
+      </div>
+    </div>
+
+    <form method="post" action="/payment/mock/{{ order.inv_id }}/confirm">
+      <button type="submit" class="btn btn-primary btn-lg btn-block">
+        Оплатить {{ order.amount }} ₽
+      </button>
+    </form>
+    <a href="/account" class="payment-cancel">Отменить</a>
+  </div>
+</div>
+{% endblock %}

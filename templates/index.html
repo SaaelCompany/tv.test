@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}LotAi — подписка на облачные модели{% endblock %}
+
+{% block content %}
+<section class="store">
+  <h1>Подписка на облачные модели</h1>
+  <p class="store-lead">После оплаты ключ лежит в кабинете.</p>
+
+  <div class="plans" id="pricing">
+    {% for p in plans %}
+    <article class="plan">
+      <h2 class="plan-name">{{ p.name }}</h2>
+      <p class="plan-price">
+        <span class="price-num">{{ p.price }}</span><span class="price-currency">₽</span>
+      </p>
+      <p class="plan-meta">
+        {{ p.days }} дней · {% if p.traffic_gb == 0 %}без лимита{% else %}{{ p.traffic_gb }} ГБ{% endif %}
+      </p>
+      <button type="button"
+              class="btn btn-primary plan-btn"
+              data-plan-id="{{ p.id }}"
+              data-plan-name="{{ p.name }}"
+              data-plan-price="{{ p.price }}"
+              data-plan-days="{{ p.days }}"
+              data-plan-gb="{{ p.traffic_gb }}">
+        Оформить
+      </button>
+    </article>
+    {% else %}
+    <p class="muted">Тарифов пока нет.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<div id="checkout-modal" class="modal-overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <button type="button" class="modal-close" onclick="closeCheckout()" aria-label="Закрыть">×</button>
+    <h3>Оплата</h3>
+    <div class="modal-plan">
+      <div>
+        <span id="modal-plan-name"></span>
+        <span id="modal-plan-meta"></span>
+      </div>
+      <div class="modal-price"><span id="modal-plan-price"></span> ₽</div>
+    </div>
+    <form method="post" action="/buy" id="checkout-form">
+      <input type="hidden" name="plan_id" id="checkout-plan-id">
+      <input type="hidden" name="mode" value="new">
+      <label class="field">
+        <span class="field-label">Почта</span>
+        <input type="email" name="email" required placeholder="you@example.com" autocomplete="email">
+      </label>
+      <button type="submit" class="btn btn-primary btn-block">Перейти к оплате</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

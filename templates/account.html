@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Кабинет — LotAi{% endblock %}
+
+{% block content %}
+{% if not user %}
+<div class="payment-wrap">
+  <div class="payment-card">
+    <h1>Кабинет</h1>
+    <p class="payment-sub">Введите почту, с которой оформляли доступ.</p>
+    <form method="post" action="/account/enter">
+      <label class="field">
+        <span class="field-label">Почта</span>
+        <input type="email" name="email" required placeholder="you@example.com" autocomplete="email" value="{{ email or '' }}">
+      </label>
+      {% if error %}<p class="sync-error">{{ error }}</p>{% endif %}
+      <button type="submit" class="btn btn-primary btn-block">Открыть</button>
+    </form>
+  </div>
+</div>
+{% else %}
+<div class="dashboard">
+  <div class="dash-header">
+    <div>
+      <div class="dash-label">Кабинет</div>
+      <h1 class="dash-title">{{ user.email }}</h1>
+    </div>
+    <div class="dash-actions">
+      <a href="/#pricing" class="btn btn-primary btn-sm">Ещё пространство</a>
+      <form method="post" action="/account/sync">
+        <button type="submit" class="btn btn-ghost btn-sm">Обновить статус</button>
+      </form>
+      <form method="post" action="/logout">
+        <button type="submit" class="btn btn-ghost btn-sm">Выйти</button>
+      </form>
+    </div>
+  </div>
+
+  {% if subscriptions %}
+    {% for card in subscriptions %}
+      {% set s = card.obj %}
+      <article class="sub-card">
+        <div class="sub-card-header">
+          <div>
+            <div class="sub-label">{{ s.name or "Подписка" }}</div>
+            <div class="sub-status sub-status-{{ card.status }}">
+              <span class="dot dot-{{ card.status }}"></span> {{ card.status_label }}
+            </div>
+          </div>
+          <div class="sub-expiry">
+            <div class="sub-label">Доступ до</div>
+            <div class="sub-expiry-date">{{ card.expiry_text }}</div>
+          </div>
+        </div>
+
+        <div class="sub-stats">
+          <div class="sub-stat">
+            <div class="sub-label">Квота</div>
+            <div class="sub-stat-value">{{ card.traffic_text }}</div>
+          </div>
+          <div class="sub-stat">
+            <div class="sub-label">Пространство</div>
+            <div class="sub-stat-value sub-stat-email">{{ s.email }}</div>
+          </div>
+          <div class="sub-stat">
+            <div class="sub-label">Тариф</div>
+            <div class="sub-stat-value">{{ s.comment or s.name or "—" }}</div>
+          </div>
+        </div>
+
+        <div class="sub-url-block">
+          <label class="sub-label">Ключ доступа</label>
+          <div class="copy-field">
+            <input type="text" readonly value="{{ s.sub_url }}" id="sub-url-{{ s.id }}" onclick="this.select()">
+            <button type="button" class="btn btn-primary btn-sm" onclick="copySub('sub-url-{{ s.id }}')">
+              Копировать
+            </button>
+          </div>
+          <p class="sub-hint">
+            Вставьте ключ в приложение LotAi. Пространство называется <b>{{ s.email }}</b>,
+            тариф в облаке — <b>{{ s.comment or s.name }}</b>.
+          </p>
+          {% if s.sync_error %}
+            <p class="sync-error">{{ s.sync_error }}</p>
+          {% elif s.last_sync_at %}
+            <p class="sub-hint">Статус облака: {{ s.last_sync_at.strftime("%d.%m.%Y %H:%M") }} UTC</p>
+          {% endif %}
+        </div>
+
+        <div class="sub-actions">
+          <button type="button"
+                  class="btn btn-primary btn-sm renew-btn"
+                  data-subscription-id="{{ s.id }}"
+                  data-subscription-name="{{ s.name or 'Подписка' }}">
+            Продлить
+          </button>
+        </div>
+      </article>
+    {% endfor %}
+  {% else %}
+    <div class="empty-card">
+      <h3>Доступа пока нет</h3>
+      <p>Оформите подписку — ключ появится здесь сразу после оплаты.</p>
+      <a href="/#pricing" class="btn btn-primary">Выбрать тариф</a>
+    </div>
+  {% endif %}
+
+  <div class="dash-section">
+    <h2 class="dash-section-title">Заказы</h2>
+    {% if orders %}
+      <div class="orders">
+        {% for o in orders %}
+        <div class="order">
+          <div class="order-main">
+            <div class="order-plan">
+              {{ o.plan.name if o.plan else "Тариф" }}
+              {% if o.kind == "renew" %}· продление{% else %}· новое пространство{% endif %}
+            </div>
+            <div class="order-meta">{{ o.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
+          </div>
+          <div class="order-amount">{{ o.amount }} ₽</div>
+          <div class="order-status order-status-{{ o.status }}">
+            {% if o.status == "paid" %}
+              Оплачен
+            {% elif o.status == "pending" %}
+              <a href="{{ o.pay_url }}">Оплатить</a>
+            {% else %}
+              {{ o.status }}
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">Заказов пока нет.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div id="renew-modal" class="modal-overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="renew-title">
+    <button type="button" class="modal-close" onclick="closeRenew()" aria-label="Закрыть">×</button>
+    <h3 id="renew-title">Продлить доступ</h3>
+    <p class="modal-note" style="text-align:left;margin-top:0">
+      Срок и квота добавятся к <b id="renew-sub-name"></b>. Ключ не изменится.
+    </p>
+    <form method="post" action="/buy">
+      <input type="hidden" name="email" value="{{ user.email }}">
+      <input type="hidden" name="mode" value="renew">
+      <input type="hidden" name="subscription_id" id="renew-subscription-id">
+      <div class="renew-plans">
+        {% for p in plans %}
+        <button class="renew-plan" type="submit" name="plan_id" value="{{ p.id }}">
+          <span>
+            <strong>{{ p.name }}</strong>
+            <small>{{ p.days }} дней · {% if p.traffic_gb == 0 %}квота без лимита{% else %}+{{ p.traffic_gb }} ГБ{% endif %}</small>
+          </span>
+          <b>{{ p.price }} ₽</b>
+        </button>
+        {% endfor %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
