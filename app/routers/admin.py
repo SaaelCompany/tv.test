@@ -51,12 +51,22 @@ def admin_login(password: str = Form(...)):
 
 
 @router.post("/plan/{plan_id}")
+def _clean_payment_url(value: str) -> str:
+    link = (value or "").strip()
+    if not link:
+        return ""
+    if not link.startswith(("http://", "https://")):
+        raise HTTPException(status_code=400, detail="Ссылка Робокассы должна начинаться с http:// или https://")
+    return link[:2000]
+
+
 def admin_update_plan(
     plan_id: int,
     name: str = Form(...),
     price: int = Form(...),
     days: int = Form(...),
     traffic_gb: int = Form(...),
+    payment_url: str = Form(""),
     is_active: bool = Form(False),
     admin_token: Optional[str] = Cookie(None),
     db: Session = Depends(get_db),
@@ -69,6 +79,7 @@ def admin_update_plan(
     plan.price = price
     plan.days = days
     plan.traffic_gb = traffic_gb
+    plan.payment_url = _clean_payment_url(payment_url)
     plan.is_active = is_active
     db.commit()
     return RedirectResponse("/admin", status_code=303)
@@ -115,10 +126,18 @@ def admin_create_plan(
     price: int = Form(...),
     days: int = Form(...),
     traffic_gb: int = Form(...),
+    payment_url: str = Form(""),
     admin_token: Optional[str] = Cookie(None),
     db: Session = Depends(get_db),
 ):
     _check(admin_token)
-    db.add(Plan(name=name, price=price, days=days, traffic_gb=traffic_gb, is_active=True))
+    db.add(Plan(
+        name=name,
+        price=price,
+        days=days,
+        traffic_gb=traffic_gb,
+        payment_url=_clean_payment_url(payment_url),
+        is_active=True,
+    ))
     db.commit()
     return RedirectResponse("/admin", status_code=303)

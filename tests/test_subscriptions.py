@@ -30,6 +30,26 @@ def test_host_header_allows_ip_and_nip():
     assert not host_allowed("evil.example", ["localhost"])
 
 
+def test_plan_uses_static_robokassa_link(client):
+    from app.database import SessionLocal
+    from app.models import Plan
+
+    db = SessionLocal()
+    plan = db.query(Plan).filter(Plan.name == "Старт").one()
+    plan.payment_url = "https://auth.robokassa.ru/Merchant/Index/start"
+    db.commit()
+    plan_id = plan.id
+    db.close()
+
+    response = client.post(
+        "/buy",
+        data={"email": "link@example.com", "plan_id": str(plan_id), "mode": "new"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    assert response.headers["location"] == "https://auth.robokassa.ru/Merchant/Index/start"
+
+
 def test_mock_payment_stays_on_the_shop_host(client):
     response = client.post(
         "/buy",

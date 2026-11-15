@@ -74,6 +74,10 @@ def ensure_schema() -> None:
         "orders": {
             "subscription_id": "INTEGER",
             "kind": "VARCHAR DEFAULT 'new'",
+            "provider_inv_id": "VARCHAR DEFAULT ''",
+        },
+        "plans": {
+            "payment_url": "VARCHAR DEFAULT ''",
         },
     }
     with engine.begin() as conn:

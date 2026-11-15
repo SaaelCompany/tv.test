@@ -19,6 +19,13 @@ def create_payment_url(order: Order) -> str:
     inv_id = str(order.id)
     order.inv_id = inv_id          # ← ВСЕГДА, до ветвления на mock/real
 
+    link = ""
+    plan = getattr(order, "plan", None)
+    if plan is not None:
+        link = (getattr(plan, "payment_url", None) or "").strip()
+    if link:
+        return link
+
     if settings.robokassa_mock:
         # Относительный адрес, чтобы браузер остался на том хосте, с которого открыт сайт.
         return f"/payment/mock/{inv_id}"

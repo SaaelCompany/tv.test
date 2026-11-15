@@ -53,6 +53,7 @@
   </form>
 
   <h2>Тарифы</h2>
+  <p class="hint">Для каждого тарифа вставьте свою готовую ссылку Робокассы. Пустое поле оставляет тестовую оплату на сайте. В кабинете Робокассы Result URL: http://179.254.168.161/payment/result</p>
 
   <form class="row" method="post" action="/admin/plan/create">
     <table>
@@ -61,6 +62,7 @@
         <td><input type="number" name="price" placeholder="Цена ₽" required></td>
         <td><input type="number" name="days" placeholder="Дней" required></td>
         <td><input type="number" name="traffic_gb" placeholder="ГБ (0=∞)" required></td>
+        <td><input type="text" name="payment_url" placeholder="Ссылка Робокассы"></td>
         <td><button class="create" type="submit">Добавить</button></td>
       </tr>
     </table>
@@ -70,7 +72,7 @@
 
   <table>
     <thead>
-      <tr><th>ID</th><th>Название</th><th>Цена ₽</th><th>Дней</th><th>ГБ</th><th>Активен</th><th></th></tr>
+      <tr><th>ID</th><th>Название</th><th>Цена ₽</th><th>Дней</th><th>ГБ</th><th>Ссылка Робокассы</th><th>Активен</th><th></th></tr>
     </thead>
     <tbody>
       {% for p in plans %}
@@ -81,6 +83,7 @@
           <td><input type="number" name="price" value="{{ p.price }}"></td>
           <td><input type="number" name="days" value="{{ p.days }}"></td>
           <td><input type="number" name="traffic_gb" value="{{ p.traffic_gb }}"></td>
+          <td><input type="text" name="payment_url" value="{{ p.payment_url or '' }}" placeholder="https://auth.robokassa.ru/..."></td>
           <td><input type="checkbox" name="is_active" value="true" {% if p.is_active %}checked{% endif %}></td>
           <td style="white-space:nowrap">
             <button class="save" type="submit">Сохранить</button>

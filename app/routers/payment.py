@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from decimal import Decimal
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
@@ -57,7 +58,21 @@ async def result_url(request: Request, db: Session = Depends(get_db)):
                        inv_id, signature, expected)
         return PlainTextResponse("ERROR", status_code=403)
 
-    order = db.query(Order).filter(Order.inv_id == str(inv_id)).first()
+    order = db.query(Order).filter(Order.provider_inv_id == str(inv_id)).first()
+    if not order:
+        order = db.query(Order).filter(Order.inv_id == str(inv_id)).first()
+    if not order:
+        # Готовая ссылка Робокассы приходит со своим InvId. Берём самый ранний
+        # неоплаченный заказ с той же суммой.
+        amount = int(Decimal(out_sum))
+        order = (
+            db.query(Order)
+            .filter(Order.status == "pending", Order.amount == amount)
+            .order_by(Order.created_at.asc(), Order.id.asc())
+            .first()
+        )
+        if order is not None:
+            order.provider_inv_id = str(inv_id)
     if not order:
         logger.warning("Robokassa: order not found inv_id=%s", inv_id)
         return PlainTextResponse("ERROR", status_code=404)
@@ -66,7 +81,6 @@ async def result_url(request: Request, db: Session = Depends(get_db)):
         return PlainTextResponse(f"OK{inv_id}")
 
     # Сверяем сумму (защита от подмены)
-    from decimal import Decimal
     if Decimal(str(order.amount)) != Decimal(out_sum):
         logger.error("Robokassa: amount mismatch inv_id=%s order=%s got=%s",
                      inv_id, order.amount, out_sum)

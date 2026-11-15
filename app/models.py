@@ -33,6 +33,7 @@ class Plan(Base):
     days = Column(Integer, nullable=False)
     traffic_gb = Column(Integer, nullable=False)  # 0 = безлимит
     price = Column(Integer, nullable=False)        # в рублях
+    payment_url = Column(String, default="")       # готовая ссылка Робокассы
     is_active = Column(Boolean, default=True)
 
 
@@ -44,6 +45,7 @@ class Order(Base):
     plan_id = Column(Integer, ForeignKey("plans.id"), nullable=False)
     subscription_id = Column(Integer, ForeignKey("subscriptions.id"), nullable=True)
     kind = Column(String, default="new")  # new | renew
+    provider_inv_id = Column(String, default="")  # InvId из готовой ссылки Робокассы
     amount = Column(Integer, nullable=False)
     status = Column(String, default="pending")  # pending | paid | failed
     created_at = Column(DateTime, default=datetime.utcnow)
