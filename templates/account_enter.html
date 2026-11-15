@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Кабинет — LotAi{% endblock %}
+
+{% block content %}
+<div class="payment-wrap">
+  <div class="payment-card">
+    <div class="payment-kicker">LotAi</div>
+    <h1>Кабинет</h1>
+    <p class="payment-sub">Введите почту, с которой оформляли доступ. На ней лежит ключ.</p>
+    <form method="post" action="/account/enter">
+      <label class="field">
+        <span class="field-label">Почта</span>
+        <input type="email" name="email" required placeholder="you@example.com" autocomplete="email" value="{{ email or '' }}">
+      </label>
+      {% if error %}
+      <p class="sync-error">{{ error }}</p>
+      {% endif %}
+      <button type="submit" class="btn btn-primary btn-block">Открыть</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

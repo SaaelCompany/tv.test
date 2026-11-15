@@ -256,6 +256,8 @@ body.modal-open { overflow: hidden; }
 .payment-row-total { border-top: 1px solid var(--line); margin-top: 4px; font-weight: 700; }
 .payment-row-total span:first-child { color: var(--ink); }
 .payment-cancel { display: inline-block; margin-top: 14px; color: var(--muted); text-decoration: none; }
+.payment-card .copy-field { flex-direction: column; margin-top: 8px; }
+.payment-card .copy-field input { font-size: 0.78rem; }
 
 .footer { border-top: 1px solid var(--line); padding: 28px 0 32px; margin-top: auto; }
 .footer-stack { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }

@@ -72,7 +72,10 @@ def test_plan_uses_static_robokassa_link(client):
         follow_redirects=False,
     )
     assert response.status_code == 303
-    assert response.headers["location"] == "https://auth.robokassa.ru/Merchant/Index/start"
+    location = response.headers["location"]
+    assert location.startswith("https://auth.robokassa.ru/Merchant/Index/start?")
+    assert "SuccessUrl=" in location
+    assert "payment%2Fsuccess" in location or "payment/success" in location
 
     plan_db = SessionLocal()
     plan = plan_db.query(Plan).filter(Plan.id == plan_id).one()
@@ -330,3 +333,69 @@ def test_ensure_schema_adds_missing_columns(client):
 def engine_begin():
     from app.database import engine
     return engine.begin()
+
+
+def _robokassa_notice(out_sum, inv_id, password):
+    import hashlib
+
+    signature = hashlib.md5(f"{out_sum}:{inv_id}:{password}".encode()).hexdigest()
+    return {"OutSum": out_sum, "InvId": inv_id, "SignatureValue": signature}
+
+
+def test_static_link_gives_each_payer_a_key(client):
+    from app.config import settings
+    from app.models import Plan
+
+    settings.robokassa_password1 = "pass-one"
+    settings.robokassa_password2 = "pass-two"
+    settings.robokassa_hash_type = "md5"
+    db = SessionLocal()
+    plan = db.query(Plan).filter(Plan.name == "Старт").one()
+    plan.payment_url = "https://auth.robokassa.ru/Merchant/Index/start"
+    out_sum = f"{plan.price}.00"
+    db.commit()
+    db.close()
+
+    assert client.post(
+        "/buy", data={"email": "one@example.com", "plan_id": "1"}, follow_redirects=False
+    ).status_code == 303
+    assert client.post(
+        "/buy", data={"email": "two@example.com", "plan_id": "1"}, follow_redirects=False
+    ).status_code == 303
+
+    first = client.post("/payment/result", data=_robokassa_notice(out_sum, "5001", "pass-two"))
+    second = client.post("/payment/result", data=_robokassa_notice(out_sum, "5001", "pass-two"))
+    assert first.status_code == 200 and first.text == "OK5001"
+    assert second.status_code == 200 and second.text == "OK5001"
+    retry = client.post("/payment/result", data=_robokassa_notice(out_sum, "5001", "pass-two"))
+    assert retry.text == "OK5001"
+
+    db = SessionLocal()
+    try:
+        subs = db.query(Subscription).all()
+        assert len(subs) == 2
+        assert len({sub.user_id for sub in subs}) == 2
+    finally:
+        db.close()
+
+    rejected = client.post("/payment/result", data=_robokassa_notice(out_sum, "5001", "wrong"))
+    assert rejected.status_code == 403
+
+    assert client.post(
+        "/buy", data={"email": "three@example.com", "plan_id": "1"}, follow_redirects=False
+    ).status_code == 303
+    page = client.get("/payment/success", params=_robokassa_notice(out_sum, "5001", "pass-one"))
+    assert page.status_code == 200
+    assert "/sub/" in page.text
+    assert "Ключ доступа" in page.text
+
+    client.cookies.clear()
+    cabinet = client.post(
+        "/account/enter",
+        data={"email": "one@example.com"},
+        follow_redirects=True,
+    )
+    assert cabinet.status_code == 200
+    assert "/sub/" in cabinet.text
+    missing = client.post("/account/enter", data={"email": "nobody@example.com"})
+    assert "ещё нет" in missing.text

@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Cookie, Depends, Request
+from fastapi import APIRouter, Cookie, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from ..templating import render
 from sqlalchemy.orm import Session
 
+from ..config import settings
 from ..database import get_db
 from ..models import Order, Plan, Subscription, User
 from ..payment import create_payment_url
@@ -83,7 +84,7 @@ def account(
 ):
     user = _user(db, user_token)
     if not user:
-        return RedirectResponse("/", status_code=303)
+        return render(request, "account_enter.html", {})
 
     try:
         sync_user(db, user.id)
@@ -116,6 +117,31 @@ def account(
             "plans": plans,
         },
     )
+
+
+@router.post("/account/enter")
+def account_enter(
+    request: Request,
+    email: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.email == email.strip().lower()).first()
+    if user is None:
+        return render(
+            request,
+            "account_enter.html",
+            {"email": email.strip(), "error": "С этой почтой доступа ещё нет."},
+        )
+    response = RedirectResponse("/account", status_code=303)
+    response.set_cookie(
+        "user_token",
+        user.token,
+        httponly=True,
+        secure=settings.cookie_secure,
+        samesite="lax",
+        max_age=86400 * 30,
+    )
+    return response
 
 
 @router.post("/account/sync")
