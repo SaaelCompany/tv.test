@@ -506,7 +506,7 @@ class XUIClient:
     def _make_sub_url(self, sub_id: str) -> str:
         if settings.xui_sub_base_url:
             return f"{settings.xui_sub_base_url.rstrip('/')}/sub/{sub_id}"
-        return f"[MOCK] https://access.lumina.example/sub/{sub_id}"
+        return f"[MOCK] https://access.lotai.example/sub/{sub_id}"
 
     def _mock_update(
         self,

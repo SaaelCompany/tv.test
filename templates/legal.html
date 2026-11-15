@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ doc_title }} — LotAi{% endblock %}
+
+{% block content %}
+<article class="legal">
+  <p class="eyebrow">{{ doc_title }}</p>
+  <h1>{{ doc_title }}</h1>
+  {% if doc_key == "privacy" %}
+    {% set body = site.privacy_policy %}
+  {% else %}
+    {% set body = site.public_offer %}
+  {% endif %}
+  {% if body %}
+    <div class="legal-body">{{ body }}</div>
+  {% else %}
+    <p class="lede">Текст документа ещё не задан. Его можно опубликовать в админке.</p>
+  {% endif %}
+</article>
+{% endblock %}

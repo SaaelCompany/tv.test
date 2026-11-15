@@ -1,47 +1,48 @@
 {% extends "base.html" %}
-{% block title %}Lumina — подписка на облачные модели{% endblock %}
+{% block title %}LotAi — подписка на облачные модели{% endblock %}
 
 {% block content %}
 <section class="hero">
   <div>
-    <p class="eyebrow">Облачный доступ</p>
-    <h1>Один ключ.<br><em>Все модели.</em></h1>
+    <p class="eyebrow">cloud inference</p>
+    <h1>Один ключ.<br>Все модели.</h1>
     <p class="lede">
       Подписка на текстовые, кодовые и визуальные модели в облаке.
-      Ключ приходит сразу после оплаты и работает на всех ваших устройствах.
+      Ключ приходит сразу после оплаты и открывает доступ на всех устройствах.
     </p>
     <div class="hero-cta">
       <a href="#pricing" class="btn btn-primary btn-lg">Выбрать доступ</a>
-      <a href="#models" class="btn btn-ghost btn-lg">Что внутри</a>
+      <a href="#models" class="btn btn-ghost btn-lg">Спецификация</a>
     </div>
     <ul class="model-row">
-      <li>Текст</li>
-      <li>Код</li>
-      <li>Изображения</li>
-      <li>Агенты</li>
+      <li>text</li>
+      <li>code</li>
+      <li>vision</li>
+      <li>agents</li>
     </ul>
   </div>
 
-  <aside class="hero-panel" aria-hidden="true">
-    <div class="panel-top">
-      <div class="panel-dots"><i></i><i></i><i></i></div>
-      <div class="panel-chip">Lumina · рабочее пространство</div>
+  <aside class="console" aria-hidden="true">
+    <div class="console-bar">
+      <span class="console-dots"><i></i><i></i><i></i></span>
+      <span>inference.lotai</span>
+      <span class="console-live">200 ok</span>
     </div>
-    <div class="bubble bubble-user">Собери план запуска и черновик письма команде.</div>
-    <div class="bubble bubble-ai">
-      <small>Облачная модель</small>
-      Три шага: аудитория, оффер, первая неделя. Письмо уже в тоне продукта, без воды.
-    </div>
-    <div class="meter">
-      <div class="meter-row"><span>Квота периода</span><span>62%</span></div>
-      <div class="meter-bar"><span></span></div>
+    <pre class="console-body"><span class="c-dim">POST</span> /v1/chat
+<span class="c-key">model</span>  lotai-text
+<span class="c-key">quota</span>  38 / 50 ГБ
+<span class="c-ok">ready</span>  ответ собран</pre>
+    <div class="console-metrics">
+      <div><span>text</span><b>ready</b></div>
+      <div><span>code</span><b>ready</b></div>
+      <div><span>vision</span><b>ready</b></div>
     </div>
   </aside>
 </section>
 
 <section id="models" class="section">
-  <h2 class="section-title">Модели под одну подписку</h2>
-  <p class="section-sub">Не нужно собирать инфраструктуру. Доступ открывается ключом, квота и срок видны в кабинете.</p>
+  <h2 class="section-title">Один интерфейс, четыре контура</h2>
+  <p class="section-sub">Инфраструктуру собирать не нужно. Ключ открывает облачные модели, квота и срок видны в кабинете.</p>
   <div class="features">
     <article class="feature">
       <div class="feature-index">01</div>

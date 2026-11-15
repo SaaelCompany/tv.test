@@ -32,7 +32,7 @@ def create_payment_url(order: Order) -> str:
         "MerchantLogin": settings.robokassa_login,
         "OutSum": out_sum,
         "InvId": inv_id,
-        "Description": f"Lumina {action} {order.plan.name}",
+        "Description": f"LotAi {action} {order.plan.name}",
         "SignatureValue": signature,
         "Culture": "ru",
     }

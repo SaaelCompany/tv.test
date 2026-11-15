@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Кабинет — Lumina{% endblock %}
+{% block title %}Кабинет — LotAi{% endblock %}
 
 {% block content %}
 <div class="dashboard">
@@ -60,7 +60,7 @@
             </button>
           </div>
           <p class="sub-hint">
-            Вставьте ключ в приложение Lumina. Пространство называется <b>{{ s.email }}</b>,
+            Вставьте ключ в приложение LotAi. Пространство называется <b>{{ s.email }}</b>,
             тариф в облаке — <b>{{ s.comment or s.name }}</b>.
           </p>
           {% if s.sync_error %}

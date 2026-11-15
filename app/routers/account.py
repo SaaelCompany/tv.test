@@ -3,7 +3,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Cookie, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+from ..templating import render
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -11,7 +11,6 @@ from ..models import Order, Plan, Subscription, User
 from ..sync import sync_user
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
 def format_traffic(num_bytes: int) -> str:
@@ -104,10 +103,10 @@ def account(
     )
     plans = db.query(Plan).filter(Plan.is_active.is_(True)).order_by(Plan.price).all()
     now = datetime.utcnow()
-    return templates.TemplateResponse(
+    return render(
+        request,
         "account.html",
         {
-            "request": request,
             "user": user,
             "subscriptions": [present(sub, now) for sub in subs],
             "orders": orders,

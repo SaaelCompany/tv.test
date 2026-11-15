@@ -1,17 +1,16 @@
-import secrets
 from typing import Optional
 
 from fastapi import APIRouter, Cookie, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..database import get_db
 from ..models import Plan
+from ..site_content import get_site
+from ..templating import templates
 
 router = APIRouter(prefix="/admin")
-templates = Jinja2Templates(directory="templates")
 
 ADMIN_COOKIE = "admin_token"
 
@@ -38,7 +37,8 @@ def admin_page(
             status_code=401,
         )
     plans = db.query(Plan).order_by(Plan.id).all()
-    return templates.TemplateResponse("admin.html", {"request": request, "plans": plans})
+    site = get_site(db)
+    return templates.TemplateResponse("admin.html", {"request": request, "plans": plans, "site": site})
 
 
 @router.post("/login")
@@ -85,6 +85,27 @@ def admin_delete_plan(
     if plan:
         db.delete(plan)
         db.commit()
+    return RedirectResponse("/admin", status_code=303)
+
+
+@router.post("/site")
+def admin_update_site(
+    legal_name: str = Form(""),
+    recipient_name: str = Form(""),
+    inn: str = Form(""),
+    privacy_policy: str = Form(""),
+    public_offer: str = Form(""),
+    admin_token: Optional[str] = Cookie(None),
+    db: Session = Depends(get_db),
+):
+    _check(admin_token)
+    site = get_site(db)
+    site.legal_name = (legal_name or "LotAi").strip()[:120] or "LotAi"
+    site.recipient_name = recipient_name.strip()[:200]
+    site.inn = "".join(ch for ch in inn if ch.isdigit())[:12]
+    site.privacy_policy = privacy_policy
+    site.public_offer = public_offer
+    db.commit()
     return RedirectResponse("/admin", status_code=303)
 
 

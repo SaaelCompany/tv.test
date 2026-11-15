@@ -23,7 +23,7 @@ def panel_client_email(user_email: str, slot: int) -> str:
     raw = (user_email or "").strip().lower()
     local, _, domain = raw.partition("@")
     local = _LOCAL_SAFE.sub("", local) or "user"
-    domain = _DOMAIN_SAFE.sub("", domain).strip(".") or "lumina.local"
+    domain = _DOMAIN_SAFE.sub("", domain).strip(".") or "lotai.local"
     slot = max(int(slot or 1), 1)
     if slot == 1:
         return f"{local}@{domain}"
@@ -48,9 +48,9 @@ def slot_from_email(email: str) -> int:
 
 
 def panel_comment(plan_name: str) -> str:
-    name = (plan_name or "Lumina").strip()
+    name = (plan_name or "LotAi").strip()
     name = re.sub(r"[\x00-\x1f\x7f/\\]", "", name)
-    return name[:120] or "Lumina"
+    return name[:120] or "LotAi"
 
 
 def subscription_title(plan_name: str, slot: int) -> str:

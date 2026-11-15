@@ -10,6 +10,7 @@ os.environ["XUI_SYNC_INTERVAL"] = "0"
 os.environ["DEBUG"] = "false"
 os.environ["COOKIE_SECURE"] = "false"
 os.environ["BASE_URL"] = "http://testserver"
+os.environ["ADMIN_PASSWORD"] = "test-admin"
 os.environ["XUI_SUB_BASE_URL"] = "http://panel.example:2096"
 os.environ["XUI_URL"] = "http://127.0.0.1:2053"
 

@@ -3,16 +3,15 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from ..config import settings
 from ..database import get_db
 from ..models import Order, Plan, Subscription, User
 from ..payment import create_payment_url
+from ..templating import render
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
 def get_or_create_user(db: Session, email: str) -> User:
@@ -28,7 +27,7 @@ def get_or_create_user(db: Session, email: str) -> User:
 @router.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)):
     plans = db.query(Plan).filter(Plan.is_active.is_(True)).all()
-    return templates.TemplateResponse("index.html", {"request": request, "plans": plans})
+    return render(request, "index.html", {"plans": plans})
 
 
 @router.post("/buy")
@@ -82,3 +81,13 @@ def buy(
         max_age=86400 * 30,
     )
     return response
+
+
+@router.get("/privacy", response_class=HTMLResponse)
+def privacy(request: Request):
+    return render(request, "legal.html", {"doc_title": "Политика конфиденциальности", "doc_key": "privacy"})
+
+
+@router.get("/offer", response_class=HTMLResponse)
+def offer(request: Request):
+    return render(request, "legal.html", {"doc_title": "Публичная оферта", "doc_key": "offer"})

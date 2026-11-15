@@ -25,10 +25,38 @@ def test_storefront_is_cloud_access(client):
     page = client.get("/")
     assert page.status_code == 200
     low = page.text.lower()
-    assert "lumina" in low
+    assert "lotai" in low
+    assert "политика конфиденциальности" in low
+    assert "публичная оферта" in low
     assert "vpn" not in low
     assert "vless" not in low
     assert "облачн" in low
+
+
+def test_admin_edits_footer_requisites(client):
+    login = client.post("/admin/login", data={"password": "test-admin"}, follow_redirects=False)
+    assert login.status_code == 303
+    saved = client.post(
+        "/admin/site",
+        data={
+            "legal_name": "LotAi",
+            "recipient_name": "Заверюха А.Н.",
+            "inn": "2124 08998175",
+            "privacy_policy": "Мы храним почту и срок доступа.",
+            "public_offer": "Оплата открывает ключ доступа.",
+        },
+        follow_redirects=True,
+    )
+    assert saved.status_code == 200
+    home = client.get("/")
+    assert "Заверюха А.Н." in home.text
+    assert "ИНН: 212408998175" in home.text
+    privacy = client.get("/privacy")
+    assert privacy.status_code == 200
+    assert "Мы храним почту и срок доступа." in privacy.text
+    offer = client.get("/offer")
+    assert "Оплата открывает ключ доступа." in offer.text
+    assert "vpn" not in privacy.text.lower()
 
 
 def test_names_and_snapshot_helpers():

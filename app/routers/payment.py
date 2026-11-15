@@ -3,7 +3,6 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from ..config import settings
@@ -12,11 +11,11 @@ from ..models import Order, Subscription
 from ..naming import next_panel_email, panel_comment, retitle, subscription_title
 from ..payment import _hash
 from ..sync import sync_subscription
+from ..templating import render
 from ..xui_client import XUIError, email_taken, gb_to_bytes, xui
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/mock/{inv_id}", response_class=HTMLResponse)
@@ -26,7 +25,7 @@ def mock_payment_page(request: Request, inv_id: str, db: Session = Depends(get_d
     order = db.query(Order).filter(Order.inv_id == inv_id).first()
     if not order:
         return HTMLResponse("Заказ не найден", status_code=404)
-    return templates.TemplateResponse("mock_payment.html", {"request": request, "order": order})
+    return render(request, "mock_payment.html", {"order": order})
 
 
 @router.post("/mock/{inv_id}/confirm")

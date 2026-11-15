@@ -250,7 +250,7 @@ log "→ сервис $SERVICE"
 if [ "$DRY_RUN" != "1" ]; then
   cat > "/etc/systemd/system/${SERVICE}.service" <<EOF
 [Unit]
-Description=Lumina subscription shop
+Description=LotAi subscription shop
 After=network.target postgresql.service
 Wants=postgresql.service
 

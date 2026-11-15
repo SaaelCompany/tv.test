@@ -8,12 +8,12 @@ def send_subscription_email(to: str, sub_url: str) -> None:
     if not settings.smtp_host:
         return
     body = (
-        f"Спасибо за оплату доступа Lumina.\n\n"
+        f"Спасибо за оплату доступа LotAi.\n\n"
         f"Ваш ключ:\n{sub_url}\n\n"
-        f"Откройте его в приложении Lumina. Срок и квота видны в кабинете.\n"
+        f"Откройте его в приложении LotAi. Срок и квота видны в кабинете.\n"
     )
     msg = MIMEText(body, "plain", "utf-8")
-    msg["Subject"] = "Ключ доступа Lumina"
+    msg["Subject"] = "Ключ доступа LotAi"
     msg["From"] = settings.smtp_from or settings.smtp_user
     msg["To"] = to
 

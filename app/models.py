@@ -1,9 +1,20 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from .database import Base
+
+
+class SiteSettings(Base):
+    """Реквизиты и тексты документов. Одна строка с id=1."""
+    __tablename__ = "site_settings"
+    id = Column(Integer, primary_key=True)
+    legal_name = Column(String, default="LotAi")
+    recipient_name = Column(String, default="")
+    inn = Column(String, default="")
+    privacy_policy = Column(Text, default="")
+    public_offer = Column(Text, default="")
 
 
 class User(Base):
