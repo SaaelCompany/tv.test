@@ -77,20 +77,17 @@
     <tbody>
       {% for p in plans %}
       <tr>
-        <form class="row" method="post" action="/admin/plan/{{ p.id }}">
-          <td>{{ p.id }}</td>
-          <td><input type="text" name="name" value="{{ p.name }}"></td>
-          <td><input type="number" name="price" value="{{ p.price }}"></td>
-          <td><input type="number" name="days" value="{{ p.days }}"></td>
-          <td><input type="number" name="traffic_gb" value="{{ p.traffic_gb }}"></td>
-          <td><input type="text" name="payment_url" value="{{ p.payment_url or '' }}" placeholder="https://auth.robokassa.ru/..."></td>
-          <td><input type="checkbox" name="is_active" value="true" {% if p.is_active %}checked{% endif %}></td>
-          <td style="white-space:nowrap">
-            <button class="save" type="submit">Сохранить</button>
-          </td>
-        </form>
-        <td>
-          <form method="post" action="/admin/plan/{{ p.id }}/delete" onsubmit="return confirm('Удалить?')">
+        <td>{{ p.id }}</td>
+        <td><input form="plan-{{ p.id }}" type="text" name="name" value="{{ p.name }}"></td>
+        <td><input form="plan-{{ p.id }}" type="number" name="price" value="{{ p.price }}"></td>
+        <td><input form="plan-{{ p.id }}" type="number" name="days" value="{{ p.days }}"></td>
+        <td><input form="plan-{{ p.id }}" type="number" name="traffic_gb" value="{{ p.traffic_gb }}"></td>
+        <td><input form="plan-{{ p.id }}" type="text" name="payment_url" value="{{ p.payment_url or '' }}" placeholder="https://auth.robokassa.ru/..."></td>
+        <td><input form="plan-{{ p.id }}" type="checkbox" name="is_active" value="true" {% if p.is_active %}checked{% endif %}></td>
+        <td style="white-space:nowrap">
+          <form id="plan-{{ p.id }}" method="post" action="/admin/plan/{{ p.id }}"></form>
+          <button class="save" type="submit" form="plan-{{ p.id }}">Сохранить</button>
+          <form method="post" action="/admin/plan/{{ p.id }}/delete" onsubmit="return confirm('Удалить?')" style="display:inline">
             <button class="del" type="submit">×</button>
           </form>
         </td>

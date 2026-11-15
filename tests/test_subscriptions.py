@@ -30,6 +30,31 @@ def test_host_header_allows_ip_and_nip():
     assert not host_allowed("evil.example", ["localhost"])
 
 
+def test_admin_saves_payment_link(client):
+    login = client.post("/admin/login", data={"password": "test-admin"}, follow_redirects=False)
+    assert login.status_code == 303
+    saved = client.post(
+        "/admin/plan/1",
+        data={
+            "name": "Старт",
+            "price": "199",
+            "days": "30",
+            "traffic_gb": "50",
+            "payment_url": "https://auth.robokassa.ru/Merchant/Index/start",
+            "is_active": "true",
+        },
+        follow_redirects=False,
+    )
+    assert saved.status_code == 303
+    from app.database import SessionLocal
+    from app.models import Plan
+
+    db = SessionLocal()
+    plan = db.get(Plan, 1)
+    assert plan.payment_url == "https://auth.robokassa.ru/Merchant/Index/start"
+    db.close()
+
+
 def test_plan_uses_static_robokassa_link(client):
     from app.database import SessionLocal
     from app.models import Plan

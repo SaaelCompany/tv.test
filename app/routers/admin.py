@@ -50,7 +50,6 @@ def admin_login(password: str = Form(...)):
     return resp
 
 
-@router.post("/plan/{plan_id}")
 def _clean_payment_url(value: str) -> str:
     link = (value or "").strip()
     if not link:
@@ -60,6 +59,7 @@ def _clean_payment_url(value: str) -> str:
     return link[:2000]
 
 
+@router.post("/plan/{plan_id}")
 def admin_update_plan(
     plan_id: int,
     name: str = Form(...),
