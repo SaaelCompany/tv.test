@@ -19,6 +19,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/unavailable", response_class=HTMLResponse)
+def payment_unavailable(request: Request):
+    return render(request, "payment_unavailable.html", {})
+
+
 @router.get("/mock/{inv_id}", response_class=HTMLResponse)
 def mock_payment_page(request: Request, inv_id: str, db: Session = Depends(get_db)):
     if not settings.robokassa_mock:

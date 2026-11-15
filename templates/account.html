@@ -106,7 +106,7 @@
             {% if o.status == "paid" %}
               Оплачен
             {% elif o.status == "pending" %}
-              <a href="/payment/mock/{{ o.inv_id }}">Оплатить</a>
+              <a href="{{ o.pay_url }}">Оплатить</a>
             {% else %}
               {{ o.status }}
             {% endif %}

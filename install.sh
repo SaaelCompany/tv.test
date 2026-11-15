@@ -237,7 +237,7 @@ else
     cat > "$APP_DIR/.env" <<EOF
 DEBUG=false
 XUI_MOCK_MODE=false
-ROBOKASSA_MOCK=true
+ROBOKASSA_MOCK=false
 
 XUI_URL=${XUI_URL}
 XUI_API_TOKEN=${XUI_API_TOKEN}
@@ -290,6 +290,10 @@ if [ -f "$APP_DIR/.env" ] && [ "$DRY_RUN" != "1" ]; then
       ok "BASE_URL был локальным, записал ${BASE_URL}"
       ;;
   esac
+  if grep -q '^ROBOKASSA_MOCK=true' "$APP_DIR/.env"; then
+    sed -i 's|^ROBOKASSA_MOCK=true|ROBOKASSA_MOCK=false|' "$APP_DIR/.env"
+    ok "тестовая оплата выключена, заказы идут в Робокассу"
+  fi
   ok "панель в .env: ${XUI_URL}"
 fi
 

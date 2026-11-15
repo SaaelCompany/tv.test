@@ -49,6 +49,31 @@ def test_plan_uses_static_robokassa_link(client):
     assert response.status_code == 303
     assert response.headers["location"] == "https://auth.robokassa.ru/Merchant/Index/start"
 
+    plan_db = SessionLocal()
+    plan = plan_db.query(Plan).filter(Plan.id == plan_id).one()
+    plan.payment_url = "http://localhost:8000/payment/mock/4"
+    plan_db.commit()
+    plan_db.close()
+    renewed = client.post(
+        "/buy",
+        data={
+            "email": "link@example.com",
+            "plan_id": str(plan_id),
+            "mode": "renew",
+            "subscription_id": "999999",
+        },
+        follow_redirects=False,
+    )
+    # Чужую подписку продлить нельзя, ссылка оплаты при этом не localhost.
+    assert renewed.status_code == 404
+
+    again = client.post(
+        "/buy",
+        data={"email": "link@example.com", "plan_id": str(plan_id), "mode": "new"},
+        follow_redirects=False,
+    )
+    assert again.headers["location"] == "/payment/mock/4"
+
 
 def test_mock_payment_stays_on_the_shop_host(client):
     response = client.post(

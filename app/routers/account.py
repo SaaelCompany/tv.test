@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import Order, Plan, Subscription, User
+from ..payment import create_payment_url
 from ..sync import sync_user
 
 router = APIRouter()
@@ -102,6 +103,8 @@ def account(
         .all()
     )
     plans = db.query(Plan).filter(Plan.is_active.is_(True)).order_by(Plan.price).all()
+    for order in orders:
+        order.pay_url = create_payment_url(order) if order.status == "pending" else ""
     now = datetime.utcnow()
     return render(
         request,

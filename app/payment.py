@@ -1,6 +1,6 @@
 import hashlib
 from decimal import Decimal
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from .config import settings
 from .models import Order
@@ -15,6 +15,17 @@ def _hash(data: str) -> str:
     return hashlib.md5(data.encode()).hexdigest()
 
 
+def _same_host_path(url: str) -> str:
+    """localhost в ссылке открывается на компьютере покупателя, а не на сервере."""
+    parsed = urlparse(url)
+    if parsed.hostname in {"localhost", "127.0.0.1"}:
+        path = parsed.path or "/"
+        if parsed.query:
+            path = f"{path}?{parsed.query}"
+        return path
+    return url
+
+
 def create_payment_url(order: Order) -> str:
     inv_id = str(order.id)
     order.inv_id = inv_id          # ← ВСЕГДА, до ветвления на mock/real
@@ -24,11 +35,14 @@ def create_payment_url(order: Order) -> str:
     if plan is not None:
         link = (getattr(plan, "payment_url", None) or "").strip()
     if link:
-        return link
+        return _same_host_path(link)
 
+    # Тестовая страница только если её явно включили и у тарифа нет ссылки.
     if settings.robokassa_mock:
-        # Относительный адрес, чтобы браузер остался на том хосте, с которого открыт сайт.
         return f"/payment/mock/{inv_id}"
+
+    if not settings.robokassa_login or not settings.robokassa_password1:
+        return f"/payment/unavailable?order={inv_id}"
 
     out_sum = f"{Decimal(order.amount):.2f}"
 
