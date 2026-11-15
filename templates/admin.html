@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin — VPN Shop</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 32px; }
+    h1 { margin-bottom: 24px; }
+    table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 8px; overflow: hidden; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #334155; }
+    th { background: #0f172a; color: #94a3b8; font-size: 0.85rem; }
+    input[type=text], input[type=number] { width: 100%; padding: 6px 8px; background: #0f172a;
+      border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; }
+    button { padding: 6px 12px; border-radius: 6px; border: 0; cursor: pointer; font-weight: 600; }
+    .save { background: #22c55e; color: #fff; }
+    .del { background: #ef4444; color: #fff; }
+    .create { background: #38bdf8; color: #000; margin-bottom: 16px; }
+    form.row { margin: 0; }
+  </style>
+</head>
+<body>
+  <h1>Тарифы</h1>
+
+  <form class="row" method="post" action="/admin/plan/create">
+    <table>
+      <tr>
+        <td><input type="text" name="name" placeholder="Название" required></td>
+        <td><input type="number" name="price" placeholder="Цена ₽" required></td>
+        <td><input type="number" name="days" placeholder="Дней" required></td>
+        <td><input type="number" name="traffic_gb" placeholder="ГБ (0=∞)" required></td>
+        <td><button class="create" type="submit">Добавить</button></td>
+      </tr>
+    </table>
+  </form>
+
+  <br>
+
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Название</th><th>Цена ₽</th><th>Дней</th><th>ГБ</th><th>Активен</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for p in plans %}
+      <tr>
+        <form class="row" method="post" action="/admin/plan/{{ p.id }}">
+          <td>{{ p.id }}</td>
+          <td><input type="text" name="name" value="{{ p.name }}"></td>
+          <td><input type="number" name="price" value="{{ p.price }}"></td>
+          <td><input type="number" name="days" value="{{ p.days }}"></td>
+          <td><input type="number" name="traffic_gb" value="{{ p.traffic_gb }}"></td>
+          <td><input type="checkbox" name="is_active" value="true" {% if p.is_active %}checked{% endif %}></td>
+          <td style="white-space:nowrap">
+            <button class="save" type="submit">Сохранить</button>
+          </td>
+        </form>
+        <td>
+          <form method="post" action="/admin/plan/{{ p.id }}/delete" onsubmit="return confirm('Удалить?')">
+            <button class="del" type="submit">×</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}LotVPN — быстрый и приватный VPN{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-badge">🔒 Zero-log · Протокол VLESS</div>
+  <h1 class="hero-title">
+    Интернет без границ.<br>
+    <span class="gradient-text">Скорость и приватность.</span>
+  </h1>
+  <p class="hero-sub">
+    Быстрый VPN на современном протоколе VLESS с XTLS-Reality.
+    Ключ выдаётся автоматически сразу после оплаты.
+  </p>
+  <div class="hero-cta">
+    <a href="#pricing" class="btn btn-primary btn-lg">Выбрать тариф →</a>
+    <a href="#features" class="btn btn-ghost btn-lg">Узнать больше</a>
+  </div>
+
+  <div class="hero-stats">
+    <div><strong>99.9%</strong><span>аптайм</span></div>
+    <div><strong>10 Гбит/с</strong><span>канал</span></div>
+    <div><strong>0</strong><span>логов</span></div>
+  </div>
+</section>
+
+<section id="features" class="section">
+  <h2 class="section-title">Почему выбирают нас</h2>
+  <p class="section-sub">Всё, что нужно для комфортного и безопасного интернета — без компромиссов</p>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <h3>Высокая скорость</h3>
+      <p>Современный VLESS + XTLS-Reality. Не режется на видео, не тормозит в играх.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔒</div>
+      <h3>Ноль логов</h3>
+      <p>Мы не храним историю подключений, IP-адреса и трафик. Приватность по умолчанию.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📱</div>
+      <h3>Любые устройства</h3>
+      <p>iOS, Android, Windows, macOS, Linux. Одна ссылка работает везде.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⚙️</div>
+      <h3>Автовыдача</h3>
+      <p>Ключ приходит мгновенно после оплаты. Не нужно ждать администратора.</p>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" class="section">
+  <h2 class="section-title">Тарифы</h2>
+  <p class="section-sub">Новый заказ — отдельная подписка. Продлить уже купленную можно в личном кабинете: дни и трафик добавятся к ней.</p>
+
+  <div class="plans">
+    {% for p in plans %}
+    <div class="plan {% if loop.index == 2 %}plan-featured{% endif %}">
+      {% if loop.index == 2 %}<div class="plan-badge">Популярный</div>{% endif %}
+      <div class="plan-name">{{ p.name }}</div>
+      <div class="plan-price">
+        <span class="price-num">{{ p.price }}</span>
+        <span class="price-currency">₽</span>
+      </div>
+      <div class="plan-meta">
+        {{ p.days }} дней · {% if p.traffic_gb == 0 %}безлимит{% else %}{{ p.traffic_gb }} ГБ{% endif %}
+      </div>
+      <ul class="plan-features">
+        <li>✓ До 3 устройств</li>
+        <li>✓ Протокол VLESS</li>
+        <li>✓ Без логов</li>
+        <li>✓ Поддержка в чате</li>
+      </ul>
+      <button type="button"
+              class="btn {% if loop.index == 2 %}btn-primary{% else %}btn-ghost{% endif %} plan-btn"
+              data-plan-id="{{ p.id }}"
+              data-plan-name="{{ p.name }}"
+              data-plan-price="{{ p.price }}"
+              data-plan-days="{{ p.days }}"
+              data-plan-gb="{{ p.traffic_gb }}">
+        Купить
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{# ═══════ Модалка оформления ═══════ #}
+<div id="checkout-modal" class="modal-overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <button type="button" class="modal-close" onclick="closeCheckout()" aria-label="Закрыть">×</button>
+    <h3>Оформление заказа</h3>
+
+    <div class="modal-plan">
+      <div>
+        <span id="modal-plan-name"></span>
+        <span id="modal-plan-meta"></span>
+      </div>
+      <div class="modal-price"><span id="modal-plan-price"></span> ₽</div>
+    </div>
+
+    <form method="post" action="/buy" id="checkout-form">
+      <input type="hidden" name="plan_id" id="checkout-plan-id">
+      <input type="hidden" name="mode" value="new">
+      <label class="field">
+        <span class="field-label">Ваш email</span>
+        <input type="email" name="email" required placeholder="you@example.com" autocomplete="email">
+        <small class="field-hint">На этот адрес придёт ссылка на подписку</small>
+      </label>
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Перейти к оплате</button>
+      <p class="modal-note">🔒 Платёж защищён. Ключ выдаётся автоматически.</p>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.plan-btn').forEach(btn => {
+    btn.addEventListener('click', () => openCheckout(btn.dataset));
+  });
+</script>
+{% endblock %}

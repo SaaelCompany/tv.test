@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Оплата заказа — VPN Shop{% endblock %}
+
+{% block content %}
+<div class="payment-wrap">
+  <div class="payment-card">
+    <div class="payment-icon">💳</div>
+    <h1>Подтвердите оплату</h1>
+    <p class="payment-sub">Это тестовый режим. Реальные деньги не списываются.</p>
+
+    <div class="payment-details">
+      <div class="payment-row">
+        <span>Заказ</span>
+        <span><b>№{{ order.inv_id }}</b></span>
+      </div>
+      <div class="payment-row">
+        <span>Тариф</span>
+        <span>{{ order.plan.name }}</span>
+      </div>
+      <div class="payment-row">
+        <span>Действие</span>
+        <span>{% if order.kind == "renew" %}Продление{% if order.subscription and order.subscription.name %} «{{ order.subscription.name }}»{% endif %}{% else %}Новая подписка{% endif %}</span>
+      </div>
+      <div class="payment-row">
+        <span>Срок</span>
+        <span>{{ order.plan.days }} дней</span>
+      </div>
+      <div class="payment-row">
+        <span>Трафик</span>
+        <span>{% if order.plan.traffic_gb == 0 %}Безлимит{% else %}{{ order.plan.traffic_gb }} ГБ{% endif %}</span>
+      </div>
+      <div class="payment-row payment-row-total">
+        <span>Итого</span>
+        <span>{{ order.amount }} ₽</span>
+      </div>
+    </div>
+
+    <form method="post" action="/payment/mock/{{ order.inv_id }}/confirm">
+      <button type="submit" class="btn btn-primary btn-lg btn-block">
+        Оплатить {{ order.amount }} ₽
+      </button>
+    </form>
+    <a href="/account" class="payment-cancel">Отменить</a>
+  </div>
+</div>
+{% endblock %}
