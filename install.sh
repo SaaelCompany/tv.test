@@ -79,7 +79,8 @@ if [ -z "$DOMAIN" ]; then
     SERVER_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
   fi
   [ -n "$SERVER_IP" ] || SERVER_IP="127.0.0.1"
-  BASE_URL="http://${SERVER_IP}:${PORT}"
+  # Сайт снаружи открывается на 80 порту, gunicorn слушает PORT только локально для прокси.
+  BASE_URL="${PUBLIC_BASE:-http://179.254.168.161}"
   COOKIE_SECURE="false"
   BIND_ADDR="0.0.0.0:${PORT}"
   USE_CADDY=0
@@ -284,7 +285,7 @@ if [ -f "$APP_DIR/.env" ] && [ "$DRY_RUN" != "1" ]; then
   grep -q '^TRUSTED_HOSTS=' "$APP_DIR/.env" || echo "TRUSTED_HOSTS=${TRUSTED_HOSTS}" >> "$APP_DIR/.env"
   _current_base="$(grep '^BASE_URL=' "$APP_DIR/.env" | head -1 | cut -d= -f2- || true)"
   case "${_current_base}" in
-    *localhost*|*127.0.0.1*)
+    *localhost*|*127.0.0.1*|*:8000|*:8000/)
       sed -i "s|^BASE_URL=.*|BASE_URL=${BASE_URL}|" "$APP_DIR/.env"
       ok "BASE_URL был локальным, записал ${BASE_URL}"
       ;;
