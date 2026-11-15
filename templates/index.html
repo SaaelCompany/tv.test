@@ -2,115 +2,22 @@
 {% block title %}LotAi — подписка на облачные модели{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <div>
-    <p class="eyebrow">cloud inference</p>
-    <h1>Один ключ.<br>Все модели.</h1>
-    <p class="lede">
-      Подписка на текстовые, кодовые и визуальные модели в облаке.
-      Ключ приходит сразу после оплаты и открывает доступ на всех устройствах.
-    </p>
-    <div class="hero-cta">
-      <a href="#pricing" class="btn btn-primary btn-lg">Выбрать доступ</a>
-      <a href="#models" class="btn btn-ghost btn-lg">Спецификация</a>
-    </div>
-    <ul class="model-row">
-      <li>text</li>
-      <li>code</li>
-      <li>vision</li>
-      <li>agents</li>
-    </ul>
-  </div>
+<section class="store">
+  <h1>Подписка на облачные модели</h1>
+  <p class="store-lead">После оплаты ключ лежит в кабинете.</p>
 
-  <aside class="console" aria-hidden="true">
-    <div class="console-bar">
-      <span class="console-dots"><i></i><i></i><i></i></span>
-      <span>inference.lotai</span>
-      <span class="console-live">200 ok</span>
-    </div>
-    <pre class="console-body"><span class="c-dim">POST</span> /v1/chat
-<span class="c-key">model</span>  lotai-text
-<span class="c-key">quota</span>  38 / 50 ГБ
-<span class="c-ok">ready</span>  ответ собран</pre>
-    <div class="console-metrics">
-      <div><span>text</span><b>ready</b></div>
-      <div><span>code</span><b>ready</b></div>
-      <div><span>vision</span><b>ready</b></div>
-    </div>
-  </aside>
-</section>
-
-<section id="models" class="section">
-  <h2 class="section-title">Один интерфейс, четыре контура</h2>
-  <p class="section-sub">Инфраструктуру собирать не нужно. Ключ открывает облачные модели, квота и срок видны в кабинете.</p>
-  <div class="features">
-    <article class="feature">
-      <div class="feature-index">01</div>
-      <h3>Текст</h3>
-      <p>Черновики, разборы и длинные ответы. Модель держит контекст задачи, а не обрывает мысль на полуслове.</p>
-    </article>
-    <article class="feature">
-      <div class="feature-index">02</div>
-      <h3>Код</h3>
-      <p>Подсказки по репозиторию, рефакторинг и объяснение чужого кода прямо в рабочем процессе.</p>
-    </article>
-    <article class="feature">
-      <div class="feature-index">03</div>
-      <h3>Изображения</h3>
-      <p>Эскизы, обложки и вариации. Генерация идёт в облаке, на устройстве ничего ставить не нужно.</p>
-    </article>
-    <article class="feature">
-      <div class="feature-index">04</div>
-      <h3>Сразу после оплаты</h3>
-      <p>Ключ появляется в кабинете автоматически. Отдельное пространство можно докупить тому же аккаунту.</p>
-    </article>
-  </div>
-</section>
-
-<section class="section">
-  <h2 class="section-title">Как это устроено</h2>
-  <div class="steps">
-    <article class="step">
-      <span>Шаг 1</span>
-      <h3>Тариф</h3>
-      <p>Срок и квота. Новый заказ — отдельное пространство, продление добавляет дни к уже купленному.</p>
-    </article>
-    <article class="step">
-      <span>Шаг 2</span>
-      <h3>Ключ</h3>
-      <p>После оплаты в кабинете лежит ключ доступа. Его можно скопировать и открыть на другом устройстве.</p>
-    </article>
-    <article class="step">
-      <span>Шаг 3</span>
-      <h3>Кабинет</h3>
-      <p>Срок, остаток квоты и статус подтягиваются из облака. Продлить можно, не меняя ключ.</p>
-    </article>
-  </div>
-</section>
-
-<section id="pricing" class="section">
-  <h2 class="section-title">Тарифы</h2>
-  <p class="section-sub">Каждая покупка — отдельное пространство. Продление уже купленного — в кабинете, ключ при этом остаётся прежним.</p>
-  <div class="plans">
+  <div class="plans" id="pricing">
     {% for p in plans %}
-    <div class="plan {% if loop.index == 2 %}plan-featured{% endif %}">
-      {% if loop.index == 2 %}<div class="plan-badge">Чаще берут</div>{% endif %}
-      <div class="plan-name">{{ p.name }}</div>
-      <div class="plan-price">
-        <span class="price-num">{{ p.price }}</span>
-        <span class="price-currency">₽</span>
-      </div>
-      <div class="plan-meta">
-        {{ p.days }} дней · {% if p.traffic_gb == 0 %}квота без лимита{% else %}{{ p.traffic_gb }} ГБ квоты{% endif %}
-      </div>
-      <ul class="plan-features">
-        <li>Текстовые и кодовые модели</li>
-        <li>Изображения в той же квоте</li>
-        <li>Отдельное пространство</li>
-        <li>Продление без смены ключа</li>
-      </ul>
+    <article class="plan">
+      <h2 class="plan-name">{{ p.name }}</h2>
+      <p class="plan-price">
+        <span class="price-num">{{ p.price }}</span><span class="price-currency">₽</span>
+      </p>
+      <p class="plan-meta">
+        {{ p.days }} дней · {% if p.traffic_gb == 0 %}без лимита{% else %}{{ p.traffic_gb }} ГБ{% endif %}
+      </p>
       <button type="button"
-              class="btn {% if loop.index == 2 %}btn-primary{% else %}btn-ghost{% endif %} plan-btn"
+              class="btn btn-primary plan-btn"
               data-plan-id="{{ p.id }}"
               data-plan-name="{{ p.name }}"
               data-plan-price="{{ p.price }}"
@@ -118,7 +25,9 @@
               data-plan-gb="{{ p.traffic_gb }}">
         Оформить
       </button>
-    </div>
+    </article>
+    {% else %}
+    <p class="muted">Тарифов пока нет.</p>
     {% endfor %}
   </div>
 </section>
@@ -126,7 +35,7 @@
 <div id="checkout-modal" class="modal-overlay" hidden>
   <div class="modal" role="dialog" aria-modal="true">
     <button type="button" class="modal-close" onclick="closeCheckout()" aria-label="Закрыть">×</button>
-    <h3>Оформление доступа</h3>
+    <h3>Оплата</h3>
     <div class="modal-plan">
       <div>
         <span id="modal-plan-name"></span>
@@ -140,10 +49,8 @@
       <label class="field">
         <span class="field-label">Почта</span>
         <input type="email" name="email" required placeholder="you@example.com" autocomplete="email">
-        <small class="field-hint">На неё придёт ключ, и по ней открывается кабинет</small>
       </label>
-      <button type="submit" class="btn btn-primary btn-lg btn-block">Перейти к оплате</button>
-      <p class="modal-note">Ключ появляется в кабинете сразу после оплаты.</p>
+      <button type="submit" class="btn btn-primary btn-block">Перейти к оплате</button>
     </form>
   </div>
 </div>
