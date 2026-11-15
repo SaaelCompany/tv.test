@@ -189,7 +189,7 @@ class XUIClient:
             base_url=self.base or "http://127.0.0.1",
             timeout=30,
             verify=False,
-            follow_redirects=True,
+            follow_redirects=False,
         )
         self._logged_in = False
         self._lock = threading.Lock()
@@ -205,7 +205,7 @@ class XUIClient:
             return
         logger.info("3x-ui: login with username/password to %s", self.base)
         r = self.client.post(
-            "/login",
+            self._path("/login"),
             data={"username": settings.xui_username, "password": settings.xui_password},
         )
         r.raise_for_status()
@@ -235,7 +235,7 @@ class XUIClient:
     # ─────────────────────── Информация ───────────────────────
     def list_inbounds(self) -> list[dict]:
         self._ensure_login()
-        r = self.client.get("/panel/api/inbounds/list")
+        r = self.client.get(self._path("/panel/api/inbounds/list"))
         r.raise_for_status()
         data = r.json()
         if not data.get("success"):
@@ -244,7 +244,7 @@ class XUIClient:
 
     def get_inbound(self, inbound_id: int) -> dict:
         self._ensure_login()
-        r = self.client.get(f"/panel/api/inbounds/get/{inbound_id}")
+        r = self.client.get(self._path(f"/panel/api/inbounds/get/{inbound_id}"))
         r.raise_for_status()
         data = r.json()
         if not data.get("success") or not data.get("obj"):
@@ -346,7 +346,7 @@ class XUIClient:
             "inboundIds": [settings.xui_inbound_id],
         }
 
-        r = self.client.post("/panel/api/clients/add", json=body)
+        r = self.client.post(self._path("/panel/api/clients/add"), json=body)
         r.raise_for_status()
         data = r.json()
         if not data.get("success"):

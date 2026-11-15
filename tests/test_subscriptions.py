@@ -30,6 +30,18 @@ def test_host_header_allows_ip_and_nip():
     assert not host_allowed("evil.example", ["localhost"])
 
 
+def test_mock_payment_stays_on_the_shop_host(client):
+    response = client.post(
+        "/buy",
+        data={"email": "pay@example.com", "plan_id": "1", "mode": "new"},
+        follow_redirects=False,
+    )
+    assert response.status_code == 303
+    location = response.headers["location"]
+    assert location.startswith("/payment/mock/")
+    assert "localhost" not in location
+
+
 def test_storefront_is_cloud_access(client):
     page = client.get("/")
     assert page.status_code == 200

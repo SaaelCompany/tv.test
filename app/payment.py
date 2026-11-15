@@ -20,7 +20,8 @@ def create_payment_url(order: Order) -> str:
     order.inv_id = inv_id          # ← ВСЕГДА, до ветвления на mock/real
 
     if settings.robokassa_mock:
-        return f"{settings.base_url.rstrip('/')}/payment/mock/{inv_id}"
+        # Относительный адрес, чтобы браузер остался на том хосте, с которого открыт сайт.
+        return f"/payment/mock/{inv_id}"
 
     out_sum = f"{Decimal(order.amount):.2f}"
 

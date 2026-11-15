@@ -282,6 +282,13 @@ if [ -f "$APP_DIR/.env" ] && [ "$DRY_RUN" != "1" ]; then
   grep -q '^XUI_SUB_BASE_URL=' "$APP_DIR/.env" || echo "XUI_SUB_BASE_URL=${XUI_SUB_BASE_URL}" >> "$APP_DIR/.env"
   sed -i "s|^TRUSTED_HOSTS=.*|TRUSTED_HOSTS=${TRUSTED_HOSTS}|" "$APP_DIR/.env"
   grep -q '^TRUSTED_HOSTS=' "$APP_DIR/.env" || echo "TRUSTED_HOSTS=${TRUSTED_HOSTS}" >> "$APP_DIR/.env"
+  _current_base="$(grep '^BASE_URL=' "$APP_DIR/.env" | head -1 | cut -d= -f2- || true)"
+  case "${_current_base}" in
+    *localhost*|*127.0.0.1*)
+      sed -i "s|^BASE_URL=.*|BASE_URL=${BASE_URL}|" "$APP_DIR/.env"
+      ok "BASE_URL был локальным, записал ${BASE_URL}"
+      ;;
+  esac
   ok "панель в .env: ${XUI_URL}"
 fi
 
@@ -362,8 +369,22 @@ if [ "${SKIP_UFW:-0}" != "1" ]; then
   else
     run "ufw allow ${PORT}/tcp"
   fi
+  # Порты панели и подписок. Без них default deny гасит 3x-ui.
+  _port_of() {
+    local u="${1#*://}"
+    u="${u%%/*}"
+    if [[ "$u" == *:* ]]; then
+      echo "${u##*:}"
+    elif [[ "$1" == https://* ]]; then
+      echo 443
+    else
+      echo 80
+    fi
+  }
+  run "ufw allow $(_port_of "$XUI_URL")/tcp"
+  run "ufw allow $(_port_of "$XUI_SUB_BASE_URL")/tcp"
   run "ufw --force enable"
-  ok "firewall включён, SSH открыт"
+  ok "firewall включён, SSH и порты панели открыты"
 else
   warn "SKIP_UFW=1"
 fi
