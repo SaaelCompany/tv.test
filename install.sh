@@ -72,6 +72,7 @@ if [ -z "$XUI_API_TOKEN" ] && [ -t 0 ] && [ "$DRY_RUN" != "1" ]; then
 fi
 [ -n "$XUI_API_TOKEN" ] || [ "$DRY_RUN" = "1" ] || die "задайте XUI_API_TOKEN (или XUI_TOKEN)"
 
+TRUSTED_HOSTS_EXTRA="${TRUSTED_HOSTS:-}"
 if [ -z "$DOMAIN" ]; then
   SERVER_IP="${SERVER_IP:-}"
   if [ -z "$SERVER_IP" ]; then
@@ -81,16 +82,44 @@ if [ -z "$DOMAIN" ]; then
   BASE_URL="http://${SERVER_IP}:${PORT}"
   COOKIE_SECURE="false"
   BIND_ADDR="0.0.0.0:${PORT}"
-  TRUSTED_HOSTS="${SERVER_IP},localhost,127.0.0.1"
   USE_CADDY=0
 else
   SUB_DOMAIN="${SUB_DOMAIN:-sub.${DOMAIN}}"
   BASE_URL="https://${DOMAIN}"
   COOKIE_SECURE="true"
   BIND_ADDR="127.0.0.1:${PORT}"
-  TRUSTED_HOSTS="${DOMAIN},${SUB_DOMAIN},localhost,127.0.0.1"
   USE_CADDY=1
 fi
+
+_hosts="localhost,127.0.0.1,*.nip.io"
+_add_host() {
+  local h="$1"
+  [ -n "$h" ] || return 0
+  case ",${_hosts}," in
+    *,"$h",*) ;;
+    *) _hosts="${_hosts},$h" ;;
+  esac
+}
+_add_host "${DOMAIN:-}"
+_add_host "${SUB_DOMAIN:-}"
+_add_host "${SERVER_IP:-}"
+_panel_host="${XUI_URL#*://}"
+_panel_host="${_panel_host%%/*}"
+_panel_host="${_panel_host%%:*}"
+_add_host "$_panel_host"
+if [[ "$_panel_host" =~ ^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)\.nip\.io$ ]]; then
+  _add_host "${BASH_REMATCH[1]}"
+fi
+for _ip in $(hostname -I 2>/dev/null || true); do
+  _add_host "$_ip"
+done
+if [ -n "$TRUSTED_HOSTS_EXTRA" ]; then
+  IFS=',' read -ra _extra <<< "$TRUSTED_HOSTS_EXTRA"
+  for _h in "${_extra[@]}"; do
+    _add_host "${_h// /}"
+  done
+fi
+TRUSTED_HOSTS="$_hosts"
 if [ "${SKIP_CADDY:-0}" = "1" ]; then
   USE_CADDY=0
 fi
@@ -100,6 +129,7 @@ log "Куда:      $APP_DIR"
 log "Сайт:      $BASE_URL"
 log "Панель:    $XUI_URL (inbound $XUI_INBOUND_ID)"
 log "Ключи:     $XUI_SUB_BASE_URL"
+log "Хосты:     $TRUSTED_HOSTS"
 [ "$DRY_RUN" = "1" ] && warn "DRY_RUN=1 — изменений не будет"
 echo
 
@@ -195,7 +225,7 @@ fi
 # ──────────── .env ────────────
 log "→ .env"
 if [ -f "$APP_DIR/.env" ] && [ "$RECONFIGURE" != "1" ]; then
-  warn "$APP_DIR/.env уже есть — пароли не трогаю, адреса панели обновляю. Пересоздать целиком: RECONFIGURE=1"
+  warn "$APP_DIR/.env уже есть — пароли не трогаю, адреса панели и хосты обновляю. Пересоздать целиком: RECONFIGURE=1"
   if [ -z "${ADMIN_PASSWORD:-}" ]; then
     ADMIN_PASSWORD="$(grep '^ADMIN_PASSWORD=' "$APP_DIR/.env" | head -1 | cut -d= -f2- || true)"
   fi
@@ -250,6 +280,8 @@ if [ -f "$APP_DIR/.env" ] && [ "$DRY_RUN" != "1" ]; then
   sed -i "s|^XUI_SUB_BASE_URL=.*|XUI_SUB_BASE_URL=${XUI_SUB_BASE_URL}|" "$APP_DIR/.env"
   grep -q '^XUI_URL=' "$APP_DIR/.env" || echo "XUI_URL=${XUI_URL}" >> "$APP_DIR/.env"
   grep -q '^XUI_SUB_BASE_URL=' "$APP_DIR/.env" || echo "XUI_SUB_BASE_URL=${XUI_SUB_BASE_URL}" >> "$APP_DIR/.env"
+  sed -i "s|^TRUSTED_HOSTS=.*|TRUSTED_HOSTS=${TRUSTED_HOSTS}|" "$APP_DIR/.env"
+  grep -q '^TRUSTED_HOSTS=' "$APP_DIR/.env" || echo "TRUSTED_HOSTS=${TRUSTED_HOSTS}" >> "$APP_DIR/.env"
   ok "панель в .env: ${XUI_URL}"
 fi
 

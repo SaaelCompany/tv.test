@@ -21,6 +21,15 @@ def _pay(client, email, plan_id, **extra):
     return paid
 
 
+def test_host_header_allows_ip_and_nip():
+    from app.main import host_allowed
+
+    assert host_allowed("179.254.168.161", ["localhost"])
+    assert host_allowed("179.254.168.161.nip.io", ["localhost"])
+    assert host_allowed("shop.example", ["shop.example"])
+    assert not host_allowed("evil.example", ["localhost"])
+
+
 def test_storefront_is_cloud_access(client):
     page = client.get("/")
     assert page.status_code == 200

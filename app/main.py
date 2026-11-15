@@ -1,3 +1,4 @@
+import ipaddress
 import logging
 import threading
 import time
@@ -5,7 +6,9 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.datastructures import Headers
+from starlette.responses import PlainTextResponse
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from .config import settings
 from .database import Base, SessionLocal, engine, ensure_schema
@@ -43,15 +46,48 @@ app = FastAPI(
 
 
 # ════════════════ Trusted hosts ════════════════
-# В проде укажите конкретные домены через env TRUSTED_HOSTS (csv).
-# Дефолт — разрешаем всё, чтобы локальный запуск работал без правок.
+# Домен из TRUSTED_HOSTS обязателен. IP и *.nip.io пускаем всегда:
+# сайт на VPS открывают по адресу машины, а не по имени из .env.
+def host_allowed(host: str, allowed: list[str]) -> bool:
+    host = (host or "").strip().lower()
+    if host in {"localhost", "127.0.0.1", "::1", "testserver"}:
+        return True
+    for pattern in allowed:
+        if host == pattern or (pattern.startswith("*.") and host.endswith(pattern[1:])):
+            return True
+    if host.endswith(".nip.io"):
+        return True
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return True
+
+
+class ShopHostMiddleware:
+    def __init__(self, app: ASGIApp, allowed_hosts: list[str]) -> None:
+        self.app = app
+        self.allow_any = "*" in allowed_hosts
+        self.allowed_hosts = allowed_hosts
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if self.allow_any or scope["type"] not in ("http", "websocket"):
+            await self.app(scope, receive, send)
+            return
+        host = Headers(scope=scope).get("host", "").split(":")[0]
+        if host_allowed(host, self.allowed_hosts):
+            await self.app(scope, receive, send)
+            return
+        await PlainTextResponse("Invalid host header", status_code=400)(scope, receive, send)
+
+
 _hosts_env = getattr(settings, "trusted_hosts", "") or ""
 _allowed_hosts = (
-    [h.strip() for h in _hosts_env.split(",") if h.strip()]
+    [h.strip().lower() for h in _hosts_env.split(",") if h.strip()]
     if _hosts_env
     else ["*"]
 )
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=_allowed_hosts)
+app.add_middleware(ShopHostMiddleware, allowed_hosts=_allowed_hosts)
 
 
 # ════════════════ Статика ════════════════
