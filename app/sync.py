@@ -110,7 +110,7 @@ def sync_subscription(db: Session, sub: Subscription) -> Subscription:
         if snap is None and sub.sub_id:
             snap = xui.get_client_by_sub_id(sub.sub_id)
         if snap is None:
-            sub.sync_error = "Клиент не найден в панели 3x-ui"
+            sub.sync_error = "Пространство не найдено в облаке"
             sub.active = False
             sub.last_sync_at = datetime.utcnow()
             return sub
@@ -120,7 +120,7 @@ def sync_subscription(db: Session, sub: Subscription) -> Subscription:
             sub.name = snap.get("comment") or "Подписка"
     except Exception as exc:
         logger.exception("sync failed email=%s", sub.email)
-        sub.sync_error = "Панель 3x-ui недоступна"
+        sub.sync_error = "Облако временно недоступно"
         sub.last_sync_at = datetime.utcnow()
         # не затираем рабочие данные, если панель временно не отвечает
         _ = exc

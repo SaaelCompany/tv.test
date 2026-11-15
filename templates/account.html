@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Личный кабинет — LotVpn{% endblock %}
+{% block title %}Кабинет — Lumina{% endblock %}
 
 {% block content %}
 <div class="dashboard">
   <div class="dash-header">
     <div>
-      <div class="dash-label">Личный кабинет</div>
+      <div class="dash-label">Кабинет</div>
       <h1 class="dash-title">{{ user.email }}</h1>
     </div>
     <div class="dash-actions">
-      <a href="/#pricing" class="btn btn-primary btn-sm">Купить ещё</a>
+      <a href="/#pricing" class="btn btn-primary btn-sm">Ещё пространство</a>
       <form method="post" action="/account/sync">
-        <button type="submit" class="btn btn-ghost btn-sm">Обновить из панели</button>
+        <button type="submit" class="btn btn-ghost btn-sm">Обновить статус</button>
       </form>
       <form method="post" action="/logout">
         <button type="submit" class="btn btn-ghost btn-sm">Выйти</button>
@@ -22,7 +22,7 @@
   {% if subscriptions %}
     {% for card in subscriptions %}
       {% set s = card.obj %}
-      <div class="sub-card">
+      <article class="sub-card">
         <div class="sub-card-header">
           <div>
             <div class="sub-label">{{ s.name or "Подписка" }}</div>
@@ -31,28 +31,28 @@
             </div>
           </div>
           <div class="sub-expiry">
-            <div class="sub-label">Действует до</div>
+            <div class="sub-label">Доступ до</div>
             <div class="sub-expiry-date">{{ card.expiry_text }}</div>
           </div>
         </div>
 
         <div class="sub-stats">
           <div class="sub-stat">
-            <div class="sub-label">Трафик</div>
+            <div class="sub-label">Квота</div>
             <div class="sub-stat-value">{{ card.traffic_text }}</div>
           </div>
           <div class="sub-stat">
-            <div class="sub-label">Имя в панели</div>
+            <div class="sub-label">Пространство</div>
             <div class="sub-stat-value sub-stat-email">{{ s.email }}</div>
           </div>
           <div class="sub-stat">
-            <div class="sub-label">В подписке</div>
+            <div class="sub-label">Тариф</div>
             <div class="sub-stat-value">{{ s.comment or s.name or "—" }}</div>
           </div>
         </div>
 
         <div class="sub-url-block">
-          <label class="sub-label">Ссылка на подписку</label>
+          <label class="sub-label">Ключ доступа</label>
           <div class="copy-field">
             <input type="text" readonly value="{{ s.sub_url }}" id="sub-url-{{ s.id }}" onclick="this.select()">
             <button type="button" class="btn btn-primary btn-sm" onclick="copySub('sub-url-{{ s.id }}')">
@@ -60,15 +60,13 @@
             </button>
           </div>
           <p class="sub-hint">
-            В панели 3x-ui клиент называется <b>{{ s.email }}</b>,
-            комментарий — <b>{{ s.comment or s.name }}</b>.
-            Имя в подписке берётся из них, если в шаблоне панели есть
-            <b>{% raw %}{{EMAIL}}{% endraw %}</b> или <b>{% raw %}{{COMMENT}}{% endraw %}</b>.
+            Вставьте ключ в приложение Lumina. Пространство называется <b>{{ s.email }}</b>,
+            тариф в облаке — <b>{{ s.comment or s.name }}</b>.
           </p>
           {% if s.sync_error %}
             <p class="sync-error">{{ s.sync_error }}</p>
           {% elif s.last_sync_at %}
-            <p class="sub-hint">Данные панели: {{ s.last_sync_at.strftime("%d.%m.%Y %H:%M") }} UTC</p>
+            <p class="sub-hint">Статус облака: {{ s.last_sync_at.strftime("%d.%m.%Y %H:%M") }} UTC</p>
           {% endif %}
         </div>
 
@@ -80,19 +78,18 @@
             Продлить
           </button>
         </div>
-      </div>
+      </article>
     {% endfor %}
   {% else %}
     <div class="empty-card">
-      <div class="empty-icon">🔓</div>
-      <h3>У вас нет подписок</h3>
-      <p>Каждая покупка создаёт отдельную подписку. Продление не смешивает их между собой.</p>
-      <a href="/#pricing" class="btn btn-primary">Выбрать тариф →</a>
+      <h3>Доступа пока нет</h3>
+      <p>Оформите подписку — ключ появится здесь сразу после оплаты.</p>
+      <a href="/#pricing" class="btn btn-primary">Выбрать тариф</a>
     </div>
   {% endif %}
 
   <div class="dash-section">
-    <h2 class="dash-section-title">История заказов</h2>
+    <h2 class="dash-section-title">Заказы</h2>
     {% if orders %}
       <div class="orders">
         {% for o in orders %}
@@ -100,7 +97,7 @@
           <div class="order-main">
             <div class="order-plan">
               {{ o.plan.name }}
-              {% if o.kind == "renew" %}· продление{% else %}· новая{% endif %}
+              {% if o.kind == "renew" %}· продление{% else %}· новое пространство{% endif %}
             </div>
             <div class="order-meta">{{ o.created_at.strftime("%d.%m.%Y %H:%M") }}</div>
           </div>
@@ -126,9 +123,9 @@
 <div id="renew-modal" class="modal-overlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="renew-title">
     <button type="button" class="modal-close" onclick="closeRenew()" aria-label="Закрыть">×</button>
-    <h3 id="renew-title">Продлить подписку</h3>
+    <h3 id="renew-title">Продлить доступ</h3>
     <p class="modal-note" style="text-align:left;margin-top:0">
-      Дни и трафик добавятся к <b id="renew-sub-name"></b>. Ссылка подписки не изменится.
+      Срок и квота добавятся к <b id="renew-sub-name"></b>. Ключ не изменится.
     </p>
     <form method="post" action="/buy">
       <input type="hidden" name="email" value="{{ user.email }}">
@@ -139,7 +136,7 @@
         <button class="renew-plan" type="submit" name="plan_id" value="{{ p.id }}">
           <span>
             <strong>{{ p.name }}</strong>
-            <small>{{ p.days }} дней · {% if p.traffic_gb == 0 %}безлимит{% else %}+{{ p.traffic_gb }} ГБ{% endif %}</small>
+            <small>{{ p.days }} дней · {% if p.traffic_gb == 0 %}квота без лимита{% else %}+{{ p.traffic_gb }} ГБ{% endif %}</small>
           </span>
           <b>{{ p.price }} ₽</b>
         </button>

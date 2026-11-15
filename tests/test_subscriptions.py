@@ -21,6 +21,16 @@ def _pay(client, email, plan_id, **extra):
     return paid
 
 
+def test_storefront_is_cloud_access(client):
+    page = client.get("/")
+    assert page.status_code == 200
+    low = page.text.lower()
+    assert "lumina" in low
+    assert "vpn" not in low
+    assert "vless" not in low
+    assert "облачн" in low
+
+
 def test_names_and_snapshot_helpers():
     email, slot = next_panel_email("Anna@Example.com", set())
     assert email == "anna@example.com"
@@ -82,7 +92,7 @@ def test_second_purchase_is_a_new_subscription_and_renew_extends_one(client):
     assert page.text.count("anna@example.com") >= 1
     assert "anna+2@example.com" in page.text
     assert "Старт #2" in page.text
-    assert page.text.count("Имя в панели") == 2
+    assert page.text.count("Ключ доступа") == 2
 
     db = SessionLocal()
     try:

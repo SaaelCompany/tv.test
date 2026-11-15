@@ -3,44 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}VPN Shop{% endblock %}</title>
+  <title>{% block title %}Lumina — облачные модели{% endblock %}</title>
+  <meta name="description" content="Подписка на доступ к облачным моделям: текст, код и изображения. Ключ выдаётся сразу после оплаты.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@500&family=Outfit:wght@400;500;600;650&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect rx='8' width='32' height='32' fill='%232436f5'/></svg>">
 </head>
 <body>
   <div class="bg-grid"></div>
-
   <header class="header">
     <div class="container header-inner">
       <a href="/" class="logo">
-        <span class="logo-mark">🛡</span>
-        <span class="logo-text">Lot<strong>VPN</strong></span>
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span class="logo-text">Lumina</span>
       </a>
       <nav class="nav">
-        <a href="/#features">Возможности</a>
+        <a href="/#models">Модели</a>
         <a href="/#pricing">Тарифы</a>
-        <a href="/account" class="btn btn-ghost btn-sm">Личный кабинет</a>
+        <a href="/account" class="btn btn-ghost btn-sm">Кабинет</a>
       </nav>
     </div>
   </header>
-
   <main class="container">
     {% block content %}{% endblock %}
   </main>
-
   <footer class="footer">
     <div class="container footer-inner">
-      <div>© {{ now_year | default(2026) }} LotVPN</div>
+      <div>© {{ now_year | default(2026) }} Lumina</div>
       <div class="footer-links">
         <a href="/#pricing">Тарифы</a>
         <a href="/account">Кабинет</a>
       </div>
     </div>
   </footer>
-
   <div id="toast" class="toast"></div>
   <script src="/static/app.js"></script>
   {% block scripts %}{% endblock %}

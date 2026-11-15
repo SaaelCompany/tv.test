@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════
-   VPN Shop — клиентские скрипты
+   Lumina — клиентские скрипты
    ═══════════════════════════════════════════════════════ */
 
 /* ───── Toast ───── */
@@ -30,7 +30,7 @@ function openCheckout(data) {
   if (metaEl) {
     const days = data.planDays || '';
     const gb = data.planGb;
-    const gbText = (gb === '0' || gb === 0) ? 'безлимит' : `${gb} ГБ`;
+    const gbText = (gb === '0' || gb === 0) ? 'квота без лимита' : `${gb} ГБ квоты`;
     metaEl.textContent = `${days} дней · ${gbText}`;
   }
 
@@ -115,14 +115,14 @@ async function copySub(elementId) {
   if (!input) return;
   try {
     await navigator.clipboard.writeText(input.value);
-    toast('Ссылка скопирована');
+    toast('Ключ скопирован');
   } catch {
     // Фолбэк для HTTP и старых браузеров
     input.select();
     input.setSelectionRange(0, 99999);
     try {
       document.execCommand('copy');
-      toast('Ссылка скопирована');
+      toast('Ключ скопирован');
     } catch {
       toast('Не удалось скопировать — выделите вручную');
     }

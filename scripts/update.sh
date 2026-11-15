@@ -6,8 +6,10 @@ SERVICE="vpn-shop"
 [ "$(id -u)" -eq 0 ] || { echo "sudo required"; exit 1; }
 cd "$APP_DIR"
 
-echo "→ git pull"
-sudo -u vpnshop git pull --ff-only
+if [ -d .git ]; then
+  echo "→ git pull"
+  sudo -u vpnshop git pull --ff-only
+fi
 
 echo "→ pip install"
 sudo -u vpnshop .venv/bin/pip install --quiet -r requirements.txt

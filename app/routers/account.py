@@ -29,14 +29,14 @@ def format_traffic(num_bytes: int) -> str:
 def subscription_status(sub: Subscription, now: datetime) -> tuple[str, str]:
     error = (sub.sync_error or "").lower()
     if "не найден" in error:
-        return "missing", "Нет в панели"
+        return "missing", "Нет в облаке"
     if sub.panel_enable is False:
         return "disabled", "Отключена"
     if sub.expiry_time and sub.expiry_time.year < 2090 and sub.expiry_time <= now:
         return "expired", "Истекла"
     used = (sub.upload_bytes or 0) + (sub.download_bytes or 0)
     if sub.total_bytes and used >= sub.total_bytes:
-        return "depleted", "Трафик исчерпан"
+        return "depleted", "Квота исчерпана"
     if not sub.active:
         return "inactive", "Неактивна"
     return "active", "Активна"

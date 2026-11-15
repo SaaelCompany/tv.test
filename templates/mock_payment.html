@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Оплата заказа — VPN Shop{% endblock %}
+{% block title %}Оплата — Lumina{% endblock %}
 
 {% block content %}
 <div class="payment-wrap">
   <div class="payment-card">
-    <div class="payment-icon">💳</div>
+    <div class="payment-kicker">Lumina</div>
     <h1>Подтвердите оплату</h1>
-    <p class="payment-sub">Это тестовый режим. Реальные деньги не списываются.</p>
+    <p class="payment-sub">Тестовый режим. Деньги не списываются, ключ выдаётся сразу.</p>
 
     <div class="payment-details">
       <div class="payment-row">
@@ -19,15 +19,15 @@
       </div>
       <div class="payment-row">
         <span>Действие</span>
-        <span>{% if order.kind == "renew" %}Продление{% if order.subscription and order.subscription.name %} «{{ order.subscription.name }}»{% endif %}{% else %}Новая подписка{% endif %}</span>
+        <span>{% if order.kind == "renew" %}Продление{% if order.subscription and order.subscription.name %} «{{ order.subscription.name }}»{% endif %}{% else %}Новое пространство{% endif %}</span>
       </div>
       <div class="payment-row">
         <span>Срок</span>
         <span>{{ order.plan.days }} дней</span>
       </div>
       <div class="payment-row">
-        <span>Трафик</span>
-        <span>{% if order.plan.traffic_gb == 0 %}Безлимит{% else %}{{ order.plan.traffic_gb }} ГБ{% endif %}</span>
+        <span>Квота</span>
+        <span>{% if order.plan.traffic_gb == 0 %}Без лимита{% else %}{{ order.plan.traffic_gb }} ГБ{% endif %}</span>
       </div>
       <div class="payment-row payment-row-total">
         <span>Итого</span>
